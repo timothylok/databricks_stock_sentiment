@@ -38,10 +38,10 @@ export function SentimentChart({ data }: { data: DailyPoint[] }) {
             fontSize: 12,
           }}
           labelStyle={{ color: "#a1a1aa", marginBottom: 4 }}
-          formatter={(value: number) => [
-            `${value >= 0 ? "+" : ""}${value.toFixed(4)}`,
-            "Sentiment",
-          ]}
+          formatter={(value) => {
+            const v = Number(value)
+            return [`${v >= 0 ? "+" : ""}${v.toFixed(4)}`, "Sentiment"]
+          }}
         />
         <Line
           type="monotone"
