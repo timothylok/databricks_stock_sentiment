@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const res = await fetch(`${HOST}/api/2.1/jobs/runs/now`, {
+  const res = await fetch(`${HOST}/api/2.1/jobs/run-now`, {
     method: "POST",
     headers: {
       Authorization:  `Bearer ${TOKEN}`,
