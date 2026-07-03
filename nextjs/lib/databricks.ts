@@ -9,7 +9,8 @@ const WAREHOUSE_ID =
 
 const VALID_TICKERS = new Set([
   "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA",
-  "META", "NVDA", "AMD",  "NFLX", "SPY",
+  "META", "NVDA", "AMD",  "SPY",
+  "XLE",  "RKLB", "SPCX",
 ])
 
 // ─── Types ────────────────────────────────────────────────────────────────────
