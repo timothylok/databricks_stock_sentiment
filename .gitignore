@@ -1,0 +1,7 @@
+.claude/
+nextjs/node_modules/
+nextjs/.next/
+nextjs/.env
+nextjs/.env.local
+nextjs/*.tsbuildinfo
+nextjs/next-env.d.ts
