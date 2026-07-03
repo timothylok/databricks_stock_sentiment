@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  revalidateTag("sentiment")
+  revalidateTag("sentiment", "default")
   console.log("[refresh/complete] ISR cache invalidated")
   return NextResponse.json({ ok: true, run_id: run_id ?? null })
 }
