@@ -54,56 +54,55 @@ else:
 
 new_count = to_score.count()
 print(f"Articles to score: {new_count}")
-if new_count == 0:
-    dbutils.notebook.exit("sentiment_scores is already up to date")
 
 # COMMAND ----------
 
-# Score once per article, then explode → one row per (article, ticker)
-scored = (
-    to_score
-    .withColumn("s",        vader_score("title_normalized"))
-    .withColumn("compound", F.col("s.compound"))
-    .withColumn("pos",      F.col("s.pos"))
-    .withColumn("neu",      F.col("s.neu"))
-    .withColumn("neg",      F.col("s.neg"))
-    .drop("s", "title_normalized")
-    .withColumn("ticker", F.explode("tickers"))
-    .drop("tickers")
-    .withColumn("scored_at", F.current_timestamp())
-    .select(
-        F.col("id").alias("article_id"),
-        "ticker", "source", "title", "published_at",
-        "compound", "pos", "neu", "neg", "scored_at",
+if new_count > 0:
+    # Score once per article, then explode → one row per (article, ticker)
+    scored = (
+        to_score
+        .withColumn("s",        vader_score("title_normalized"))
+        .withColumn("compound", F.col("s.compound"))
+        .withColumn("pos",      F.col("s.pos"))
+        .withColumn("neu",      F.col("s.neu"))
+        .withColumn("neg",      F.col("s.neg"))
+        .drop("s", "title_normalized")
+        .withColumn("ticker", F.explode("tickers"))
+        .drop("tickers")
+        .withColumn("scored_at", F.current_timestamp())
+        .select(
+            F.col("id").alias("article_id"),
+            "ticker", "source", "title", "published_at",
+            "compound", "pos", "neu", "neg", "scored_at",
+        )
     )
-)
 
-spark.sql(f"""
-CREATE TABLE IF NOT EXISTS {SCORES_TABLE} (
-  article_id   STRING    NOT NULL,
-  ticker       STRING    NOT NULL,
-  source       STRING    NOT NULL,
-  title        STRING    NOT NULL,
-  published_at TIMESTAMP,
-  compound     FLOAT,
-  pos          FLOAT,
-  neu          FLOAT,
-  neg          FLOAT,
-  scored_at    TIMESTAMP
-)
-USING DELTA
-PARTITIONED BY (ticker)
-""")
+    spark.sql(f"""
+    CREATE TABLE IF NOT EXISTS {SCORES_TABLE} (
+      article_id   STRING    NOT NULL,
+      ticker       STRING    NOT NULL,
+      source       STRING    NOT NULL,
+      title        STRING    NOT NULL,
+      published_at TIMESTAMP,
+      compound     FLOAT,
+      pos          FLOAT,
+      neu          FLOAT,
+      neg          FLOAT,
+      scored_at    TIMESTAMP
+    )
+    USING DELTA
+    PARTITIONED BY (ticker)
+    """)
 
-(
-    DeltaTable.forName(spark, SCORES_TABLE)
-    .alias("t")
-    .merge(scored.alias("s"), "t.article_id = s.article_id AND t.ticker = s.ticker")
-    .whenNotMatchedInsertAll()
-    .execute()
-)
+    (
+        DeltaTable.forName(spark, SCORES_TABLE)
+        .alias("t")
+        .merge(scored.alias("s"), "t.article_id = s.article_id AND t.ticker = s.ticker")
+        .whenNotMatchedInsertAll()
+        .execute()
+    )
 
-print(f"sentiment_scores total: {spark.table(SCORES_TABLE).count()}")
+print(f"sentiment_scores total: {spark.table(SCORES_TABLE).count() if spark.catalog.tableExists(SCORES_TABLE) else 0}")
 
 # COMMAND ----------
 # MAGIC %md ### Step 2 — Recompute daily aggregates
