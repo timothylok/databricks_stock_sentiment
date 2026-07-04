@@ -13,25 +13,9 @@ DATABASE = "stock_sentiment"
 SOURCE_TABLE = f"{DATABASE}.news_raw"
 TARGET_TABLE = f"{DATABASE}.news_clean"
 
-TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "AMD", "SPY", "XLE", "RKLB", "SPCX"]
-TICKER_PATTERN = re.compile(r"\b(" + "|".join(TICKERS) + r")\b")
+# COMMAND ----------
 
-# Company name → ticker for enrichment beyond raw symbol matching
-COMPANY_MAP = {
-    "apple": "AAPL",
-    "microsoft": "MSFT",
-    "google": "GOOGL",
-    "alphabet": "GOOGL",
-    "amazon": "AMZN",
-    "tesla": "TSLA",
-    "meta platforms": "META",
-    "facebook": "META",
-    "nvidia": "NVDA",
-    "rocket lab": "RKLB",
-}
-COMPANY_PATTERN = re.compile(
-    r"\b(" + "|".join(re.escape(k) for k in COMPANY_MAP) + r")\b"
-)
+# MAGIC %run ./_tickers
 
 # COMMAND ----------
 

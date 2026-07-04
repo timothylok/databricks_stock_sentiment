@@ -6,7 +6,6 @@
 # COMMAND ----------
 
 import hashlib
-import re
 import feedparser
 import requests
 from datetime import datetime, timezone
@@ -17,8 +16,9 @@ from delta.tables import DeltaTable
 
 # COMMAND ----------
 
-TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "AMD", "NFLX", "SPY"]
-TICKER_PATTERN = re.compile(r"\b(" + "|".join(TICKERS) + r")\b")
+# MAGIC %run ./_tickers
+
+# COMMAND ----------
 
 DATABASE = "stock_sentiment"
 TABLE = f"{DATABASE}.news_raw"
