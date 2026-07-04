@@ -141,6 +141,8 @@ except Exception as e:
     print(f"  WARNING: finviz failed — {e}")
 
 print(f"\nTotal fetched: {len(all_rows)} rows")
+if len(all_rows) == 0:
+    dbutils.notebook.exit("No articles fetched from any source — skipping")
 
 # COMMAND ----------
 
