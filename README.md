@@ -1,12 +1,12 @@
 # Daily Stock Sentiment Pipeline
 
-Daily stock‑sentiment pipeline — RSS + Reddit ingestion → Databricks Delta → VADER scoring → Next.js 16 dashboard on Vercel
+Daily stock‑sentiment pipeline — RSS ingestion → Databricks Delta → VADER scoring → Next.js 16 dashboard on Vercel
 
-A lightweight, end‑to‑end proof‑of‑concept showing how to ingest financial news + Reddit discussions, store them in Delta Lake, compute sentiment, and visualize trends in a modern Next.js dashboard.
+A lightweight, end‑to‑end proof‑of‑concept showing how to ingest financial news, store it in Delta Lake, compute sentiment, and visualize trends in a modern Next.js dashboard.
 
 ## 🚀 Features
 
-- Daily ingestion from RSS feeds + Reddit API
+- Daily ingestion from RSS feeds (Yahoo Finance, MarketWatch, Reuters, CNBC, Apple Newsroom, plus per-ticker Yahoo feeds) and FinViz
 - Databricks Delta Lake storage for clean, queryable data
 - VADER sentiment scoring (finance‑friendly lexicon)
 - Next.js 16 App Router dashboard
@@ -76,7 +76,9 @@ DATABRICKS_HOST=
 DATABRICKS_TOKEN=
 DATABRICKS_SQL_HTTP_PATH=
 DATABRICKS_JOB_ID=
+DATABRICKS_REPO_ID=
 CRON_SECRET=
+DISCORD_WEBHOOK_URL=
 ```
 
 ### Run the dashboard locally
@@ -91,7 +93,7 @@ npm run dev
 
 Import the repo into a Databricks workspace via Repos, then run the notebooks in order:
 
-1. `databricks/ingest_news.py` — pulls RSS + Reddit, writes to `news_raw`
+1. `databricks/ingest_news.py` — pulls RSS feeds + FinViz, writes to `news_raw`
 2. `databricks/clean_news.py` — deduplicates and normalises, writes to `news_clean`
 3. `databricks/sentiment.py` — scores headlines with VADER, aggregates to `sentiment_daily` and `ticker_summary`
 

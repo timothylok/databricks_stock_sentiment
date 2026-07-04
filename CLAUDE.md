@@ -165,7 +165,7 @@ Never read generated artifacts (HTML, compiled output, cached reports) for proje
 
 ## 10. Project-Specific Context
 
-**Daily-refreshed Global Stock Sentiment Analyzer POC.** Pulls open RSS/Reddit sources, scores sentiment in Databricks, and surfaces results in a Next.js dashboard on Vercel.
+**Daily-refreshed Global Stock Sentiment Analyzer POC.** Pulls open RSS sources, scores sentiment in Databricks, and surfaces results in a Next.js dashboard on Vercel.
 
 ### Stack
 
@@ -174,12 +174,12 @@ Never read generated artifacts (HTML, compiled output, cached reports) for proje
 - **Automation**: cron-job.org triggers daily refresh via Vercel API route (two jobs: trigger + cache bust)
 - **CI/CD**: GitHub → Vercel (auto-deploy on push)
 - **Sentiment**: VADER (vaderSentiment 3.3.2)
-- **Data sources**: Yahoo Finance RSS, MarketWatch RSS, Reuters RSS, Reddit r/stocks public JSON, FinViz HTML scrape
+- **Data sources**: Yahoo Finance RSS (topstories + per-ticker feeds), MarketWatch RSS, Reuters RSS, CNBC Markets/Tech RSS, Apple Newsroom RSS, FinViz HTML scrape (Reddit dropped 2026-07 — anonymous `.json` endpoint now blocked outright)
 - **Tickers**: AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA, AMD, SPY, XLE, RKLB, SPCX
 
 ### Key files and entry points
 
-- `databricks/ingest_news.py` — fetches RSS/Reddit, stores raw headlines to `news_raw` Delta table
+- `databricks/ingest_news.py` — fetches RSS feeds + FinViz, stores raw headlines to `news_raw` Delta table
 - `databricks/clean_news.py` — deduplicates, normalises text, stores to `news_clean`
 - `databricks/sentiment.py` — scores each headline, aggregates per ticker, stores to `sentiment_daily`
 - `databricks/job.json` — Databricks job definition (ETL orchestration)
@@ -194,7 +194,9 @@ Never read generated artifacts (HTML, compiled output, cached reports) for proje
 - `DATABRICKS_TOKEN` — personal access token for REST API auth
 - `DATABRICKS_SQL_HTTP_PATH` — HTTP path for the SQL Warehouse
 - `DATABRICKS_JOB_ID` — job ID to trigger via `/api/refresh`
+- `DATABRICKS_REPO_ID` — Repos API ID, PATCHed to latest `main` before every trigger
 - `CRON_SECRET` — shared secret to authenticate cron-job.org webhook calls
+- `DISCORD_WEBHOOK_URL` — failure alert channel (`nextjs/lib/alert.ts`)
 
 ### Architecture / data flow
 

@@ -28,6 +28,12 @@ RSS_SOURCES = [
     ("yahoo_finance",   "https://finance.yahoo.com/rss/topstories"),
     ("marketwatch",     "https://feeds.content.dowjones.io/public/rss/mw_topstories"),
     ("reuters",         "https://feeds.reuters.com/reuters/businessNews"),
+    ("cnbc_markets",    "https://www.cnbc.com/id/100003114/device/rss/rss.html"),
+    ("cnbc_tech",       "https://www.cnbc.com/id/19854910/device/rss/rss.html"),
+    ("apple_newsroom",  "https://www.apple.com/newsroom/rss-feed.rss"),
+] + [
+    (f"yahoo_{t.lower()}", f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={t}&region=US&lang=en-US")
+    for t in TICKERS
 ]
 
 HEADERS = {"User-Agent": "stocksentiment-poc/1.0 (github.com/timlo/stocksentiment)"}
@@ -82,41 +88,12 @@ def fetch_rss(source: str, url: str) -> list[Row]:
     return rows
 
 
-def fetch_reddit() -> list[Row]:
-    resp = requests.get(
-        "https://www.reddit.com/r/stocks/.json?limit=100&sort=new",
-        headers=HEADERS,
-        timeout=15,
-    )
-    resp.raise_for_status()
-    posts = resp.json()["data"]["children"]
-    rows = []
-    for p in posts:
-        d = p["data"]
-        if d.get("is_self") is False and d.get("stickied"):
-            continue
-        title = d.get("title", "").strip()
-        url = f"https://www.reddit.com{d.get('permalink', '')}"
-        if not title:
-            continue
-        rows.append(Row(
-            id=row_id("reddit", url),
-            source="reddit",
-            tickers=extract_tickers(title),
-            title=title,
-            url=url,
-            published_at=datetime.utcfromtimestamp(d.get("created_utc", 0)),
-        ))
-    print(f"  reddit: {len(rows)} posts")
-    return rows
-
-
 def fetch_finviz() -> list[Row]:
     resp = requests.get("https://finviz.com/news.ashx", headers=HEADERS, timeout=15)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
     rows = []
-    for a in soup.select("a.tab-link-news"):
+    for a in soup.select("a.nn-tab-link"):
         title = a.get_text(strip=True)
         url = a.get("href", "")
         if not title or not url.startswith("http"):
@@ -141,11 +118,6 @@ for name, url in RSS_SOURCES:
         all_rows.extend(fetch_rss(name, url))
     except Exception as e:
         print(f"  WARNING: {name} failed — {e}")
-
-try:
-    all_rows.extend(fetch_reddit())
-except Exception as e:
-    print(f"  WARNING: reddit failed — {e}")
 
 try:
     all_rows.extend(fetch_finviz())
