@@ -16,8 +16,8 @@ Fully removed: `sentiment_scores`/`sentiment_daily` cleaned, and the stale `NFLX
 ## ingest_news.py crash on all-empty ticker batches — fixed 2026-07-04
 `spark.createDataFrame(all_rows)` relied on type inference and crashed (`CANNOT_DETERMINE_TYPE`) whenever every fetched headline in a batch had zero literal ticker-symbol matches (common — `ingest_news.py` only matches bare symbols like `AAPL`, not company names). Only 2 of 96 historical rows ever had a match at ingest time, so this was a latent bug, not a regression. Fixed with an explicit `StructType` schema instead of inference. Confirmed via two full successful pipeline runs afterward.
 
-## Databricks failure email notification (manual step pending)
-Add an email address for "on failure" in Databricks Jobs UI → job → Edit → Notifications. Vercel-side failures (trigger/complete routes) already alert to Discord; cron-job.org's own failure notification was skipped per user request — this Databricks step is the only leg not yet wired up.
+## ~~Databricks failure email notification~~ — done 2026-07-04
+`on_failure` email notification set to timlok@gmail.com in the job's Databricks settings (`email_notifications.on_failure`, verified via `jobs/get`). Combined with Vercel-side Discord alerts (trigger/complete routes) — cron-job.org's own failure notification was skipped per user request — all failure legs are now covered.
 
 ## Roadmap (from README)
 - Add LLM sentiment scoring (FinBERT or GPT-4o mini)
