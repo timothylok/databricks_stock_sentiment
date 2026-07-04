@@ -128,21 +128,6 @@ daily = (
     )
 )
 
-spark.sql(f"""
-CREATE TABLE IF NOT EXISTS {DAILY_TABLE} (
-  ticker         STRING    NOT NULL,
-  date           DATE      NOT NULL,
-  avg_compound   FLOAT,
-  article_count  INT,
-  positive_count INT,
-  negative_count INT,
-  neutral_count  INT,
-  computed_at    TIMESTAMP
-)
-USING DELTA
-PARTITIONED BY (date)
-""")
-
 (
     daily.write.format("delta")
     .mode("overwrite")
