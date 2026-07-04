@@ -11,6 +11,13 @@
 - Set up two cron-job.org jobs: trigger ETL at 7:00am NZT, invalidate ISR cache at 7:30am NZT
 - Confirmed dashboard live at https://databricks-stock-sentiment.vercel.app/ showing Market Mood Positive +0.1132
 
+## 2026-07-05
+- Checked in on the pipeline (first full day since the Reddit-drop/FinViz-fix/cache-bug fixes); no code changes, verification only
+- Confirmed today's 7:00/7:30am NZT cron pair ran cleanly with zero manual intervention: single Databricks job run (`253283687744960`), `SUCCESS`, 177 raw → 136 clean → 48 newly scored articles; dashboard already showed the fresh 10-ticker `ticker_summary` (last_updated 19:05 UTC), so `/api/refresh/complete` busted the ISR cache on its own
+- Found the 2026-07-04 "SPY/XLE have zero headline mentions" note was misleading: both have mentions in `sentiment_scores` (via the new per-ticker Yahoo feeds), they just can't reach `ticker_summary` because its join uses a 1-day-window table as the base and drops any ticker absent from it, even with 7d/30d history — flagged as an open product decision in TODO.md, not fixed
+- Confirmed the new sources are contributing across multiple independent runs, not just the 07-04 validation run: `cnbc_markets` + 10/12 per-ticker Yahoo feeds delivered new articles again today; `apple_newsroom`, `cnbc_tech`, `yahoo_spy`, `yahoo_xle` have been quiet since validation day — needs more days to know if that's a real gap
+- What's next: keep watching SPY/XLE and the 4 quiet sources over the next few daily runs; decide whether `ticker_summary`'s join-base logic should change to surface 7d/30d-only tickers
+
 ## 2026-07-04
 - Created README.md with project overview, architecture diagram, setup instructions, and cron job details
 - Updated project architecture memory: corrected stack (Next.js 16, recharts), confirmed VADER, documented Databricks Repos setup, dual cron-job pattern, live URL, correct job trigger endpoint

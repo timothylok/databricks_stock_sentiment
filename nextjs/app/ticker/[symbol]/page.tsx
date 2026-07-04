@@ -37,7 +37,9 @@ export default async function TickerPage({
   const summary = summaries.find((s) => s.ticker === symbol)
   if (!summary) notFound()
 
-  const score = summary.avg_compound_today
+  const hasToday = summary.avg_compound_today != null
+  const score = summary.avg_compound_today ?? summary.avg_compound_7d ?? summary.avg_compound_30d
+  const fallbackLabel = summary.avg_compound_7d != null ? "7d avg" : "30d avg"
 
   return (
     <div>
@@ -57,7 +59,9 @@ export default async function TickerPage({
           {fmt(score)}
         </div>
         <p className="text-zinc-500 text-sm mt-1">
-          today · {summary.article_count_today ?? 0} articles
+          {hasToday
+            ? `today · ${summary.article_count_today ?? 0} articles`
+            : `no headlines today · showing ${fallbackLabel}`}
         </p>
 
         <div className="flex gap-6 mt-4 text-sm">

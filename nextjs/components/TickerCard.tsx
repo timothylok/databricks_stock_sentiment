@@ -2,7 +2,9 @@ import Link from "next/link"
 import type { TickerSummary } from "@/lib/databricks"
 
 export function TickerCard({ summary: s }: { summary: TickerSummary }) {
-  const score = s.avg_compound_today
+  const hasToday = s.avg_compound_today != null
+  const score = s.avg_compound_today ?? s.avg_compound_7d ?? s.avg_compound_30d
+  const fallbackLabel = s.avg_compound_7d != null ? "7d avg" : "30d avg"
 
   return (
     <Link
@@ -19,7 +21,9 @@ export function TickerCard({ summary: s }: { summary: TickerSummary }) {
         {fmt(score)}
       </div>
       <p className="text-xs text-zinc-500">
-        today · {s.article_count_today ?? 0} articles
+        {hasToday
+          ? `today · ${s.article_count_today ?? 0} articles`
+          : `no headlines today · showing ${fallbackLabel}`}
       </p>
 
       <div className="mt-4 grid grid-cols-2 gap-2 text-xs">

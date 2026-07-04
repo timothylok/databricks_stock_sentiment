@@ -178,11 +178,12 @@ headlines = (
 )
 
 summary = (
-    today_agg
-    .join(week_agg.drop("article_count_7d"),  "ticker", "left")
-    .join(month_agg.drop("article_count_30d"), "ticker", "left")
-    .join(headlines, "ticker", "left")
+    month_agg.drop("article_count_30d")
+    .join(week_agg.drop("article_count_7d"), "ticker", "left")
+    .join(today_agg,                         "ticker", "left")
+    .join(headlines,                         "ticker", "left")
     .withColumnRenamed("article_count_1d", "article_count_today")
+    .withColumn("article_count_today", F.coalesce(F.col("article_count_today"), F.lit(0)))
     .withColumn("last_updated", F.current_timestamp())
 )
 
