@@ -11,6 +11,16 @@
 - Set up two cron-job.org jobs: trigger ETL at 7:00am NZT, invalidate ISR cache at 7:30am NZT
 - Confirmed dashboard live at https://databricks-stock-sentiment.vercel.app/ showing Market Mood Positive +0.1132
 
+## 2026-07-05 (cont'd)
+- Fixed `ticker_summary`'s join-base bug: anchored on `month_agg` (30d) instead of `today_agg` (1d), so tickers with only 7d/30d history (like SPY/XLE) no longer get dropped entirely; `avg_compound_today` stays `NULL` (not coalesced to 0) when there's no same-day article
+- Updated `TickerCard.tsx` and `ticker/[symbol]/page.tsx` to fall back to the 7d/30d avg with a "no headlines today · showing Nd avg" label instead of a bare dash when today's score is null
+- Committed and pushed (`d9380d5`), synced the Databricks repo, and triggered a manual run (`760013672960632`, all 3 tasks SUCCESS) to confirm before the next scheduled cron
+- Verified live: `ticker_summary` now has 12/12 tickers; manually busted the ISR cache (`/api/refresh/complete`) and confirmed the dashboard renders SPY/XLE with the new fallback label — caught that my first WebFetch check was serving a stale 15-min-cached copy of the page, re-verified via direct curl
+- Validated and added a new RSS source, `motley_fool` (`fool.com/a/feeds/partner/googlechromefollow`) — flagged that its `apikey` looks like a Motley Fool partner credential for Chrome's "Follow" feature, not one issued to this project, so it could be revoked without notice; not yet exercised by a pipeline run
+- Rejected `forbes.com/investing/?sh=...` as a source — DataDome anti-bot protected HTML page, not RSS; same risk category as the already-dropped Reddit source
+- Found and added the real Forbes feeds instead: `feeds.forbes.com/markets/feed2/` and `feeds.forbes.com/investing/feed2/` — a separate, unprotected RSS subdomain discovered via the `<link rel="alternate">` tag on the investing page. Both validated clean (200, real articles, no anti-bot headers)
+- What's next: confirm `motley_fool` and the two Forbes feeds actually contribute articles on the next run; keep watching the 4 quiet sources (`apple_newsroom`/`cnbc_tech`/`yahoo_spy`/`yahoo_xle`) from earlier today
+
 ## 2026-07-05
 - Checked in on the pipeline (first full day since the Reddit-drop/FinViz-fix/cache-bug fixes); no code changes, verification only
 - Confirmed today's 7:00/7:30am NZT cron pair ran cleanly with zero manual intervention: single Databricks job run (`253283687744960`), `SUCCESS`, 177 raw → 136 clean → 48 newly scored articles; dashboard already showed the fresh 10-ticker `ticker_summary` (last_updated 19:05 UTC), so `/api/refresh/complete` busted the ISR cache on its own

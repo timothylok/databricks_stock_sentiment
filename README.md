@@ -6,7 +6,7 @@ A lightweight, end‑to‑end proof‑of‑concept showing how to ingest financi
 
 ## 🚀 Features
 
-- Daily ingestion from RSS feeds (Yahoo Finance, MarketWatch, Reuters, CNBC, Apple Newsroom, plus per-ticker Yahoo feeds) and FinViz
+- Daily ingestion from RSS feeds (Yahoo Finance, MarketWatch, Reuters, CNBC, Apple Newsroom, Motley Fool, Forbes Markets/Investing, plus per-ticker Yahoo feeds) and FinViz
 - Databricks Delta Lake storage for clean, queryable data
 - VADER sentiment scoring (finance‑friendly lexicon)
 - Next.js 16 App Router dashboard

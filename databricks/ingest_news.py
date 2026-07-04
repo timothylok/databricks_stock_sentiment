@@ -31,6 +31,9 @@ RSS_SOURCES = [
     ("cnbc_markets",    "https://www.cnbc.com/id/100003114/device/rss/rss.html"),
     ("cnbc_tech",       "https://www.cnbc.com/id/19854910/device/rss/rss.html"),
     ("apple_newsroom",  "https://www.apple.com/newsroom/rss-feed.rss"),
+    ("motley_fool",     "https://www.fool.com/a/feeds/partner/googlechromefollow?apikey=5e092c1f-c5f9-4428-9219-908a47d2e2de"),
+    ("forbes_markets",  "https://feeds.forbes.com/markets/feed2/"),
+    ("forbes_investing", "https://feeds.forbes.com/investing/feed2/"),
 ] + [
     (f"yahoo_{t.lower()}", f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={t}&region=US&lang=en-US")
     for t in TICKERS
