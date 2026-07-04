@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
+import { sendAlert } from "@/lib/alert"
 
 const HOST   = process.env.DATABRICKS_HOST!
 const TOKEN  = process.env.DATABRICKS_TOKEN!
@@ -24,10 +25,12 @@ export async function POST(req: NextRequest) {
   if (run_id != null) {
     const state = await getRunState(run_id)
     if (!state) {
+      await sendAlert(`🚨 **refresh/complete**: Could not fetch run state for run_id ${run_id}`)
       return NextResponse.json({ error: "Could not fetch run state" }, { status: 502 })
     }
     if (state !== "SUCCESS") {
       console.warn(`[refresh/complete] Run ${run_id} state: ${state} — skipping cache invalidation`)
+      await sendAlert(`🚨 **refresh/complete**: Run ${run_id} finished with state ${state} — cache not invalidated`)
       return NextResponse.json({ ok: false, run_id, state }, { status: 200 })
     }
   }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { sendAlert } from "@/lib/alert"
 
 const HOST    = process.env.DATABRICKS_HOST!
 const TOKEN   = process.env.DATABRICKS_TOKEN!
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
   if (!res.ok) {
     const detail = await res.text()
     console.error("[refresh] Databricks trigger failed:", detail)
+    await sendAlert(`🚨 **refresh**: Databricks trigger failed\n${detail}`)
     return NextResponse.json({ error: "Failed to trigger job", detail }, { status: 502 })
   }
 
