@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from bs4 import BeautifulSoup
 from pyspark.sql import Row
 from pyspark.sql.functions import current_timestamp
+from pyspark.sql.types import StructType, StructField, StringType, ArrayType, TimestampType
 from delta.tables import DeltaTable
 
 # COMMAND ----------
@@ -30,6 +31,17 @@ RSS_SOURCES = [
 ]
 
 HEADERS = {"User-Agent": "stocksentiment-poc/1.0 (github.com/timlo/stocksentiment)"}
+
+# Explicit schema — spark.createDataFrame can't infer an ARRAY<STRING> column's
+# element type when every row's tickers list happens to be empty in a batch.
+ROW_SCHEMA = StructType([
+    StructField("id",           StringType(), nullable=False),
+    StructField("source",       StringType(), nullable=False),
+    StructField("tickers",      ArrayType(StringType()), nullable=False),
+    StructField("title",        StringType(), nullable=False),
+    StructField("url",          StringType(), nullable=True),
+    StructField("published_at", TimestampType(), nullable=True),
+])
 
 # COMMAND ----------
 
@@ -165,7 +177,7 @@ PARTITIONED BY (source)
 # COMMAND ----------
 
 incoming = (
-    spark.createDataFrame(all_rows)
+    spark.createDataFrame(all_rows, schema=ROW_SCHEMA)
     .withColumn("ingested_at", current_timestamp())
     .dropDuplicates(["id"])
 )
