@@ -169,12 +169,13 @@ Never read generated artifacts (HTML, compiled output, cached reports) for proje
 
 ### Stack
 
-- **Frontend**: Next.js 14 App Router, TypeScript, Tailwind CSS, ShadCN UI, react-chartjs-2
-- **Backend/pipeline**: Databricks (notebooks + SQL Warehouse + Delta tables)
-- **Automation**: cron-job.org triggers daily refresh via Vercel API route
+- **Frontend**: Next.js 16 App Router, TypeScript, Tailwind CSS, ShadCN UI, recharts
+- **Backend/pipeline**: Databricks (notebooks + SQL Warehouse + Delta tables, serverless compute)
+- **Automation**: cron-job.org triggers daily refresh via Vercel API route (two jobs: trigger + cache bust)
 - **CI/CD**: GitHub → Vercel (auto-deploy on push)
-- **Sentiment**: VADER or TextBlob (open-source, no API key)
+- **Sentiment**: VADER (vaderSentiment 3.3.2)
 - **Data sources**: Yahoo Finance RSS, MarketWatch RSS, Reuters RSS, Reddit r/stocks public JSON, FinViz HTML scrape
+- **Tickers**: AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA, AMD, SPY, XLE, RKLB, SPCX
 
 ### Key files and entry points
 
@@ -198,14 +199,18 @@ Never read generated artifacts (HTML, compiled output, cached reports) for proje
 ### Architecture / data flow
 
 ```
-cron-job.org (7am NZT)
+cron-job.org Job 1 (7:00am NZT / 19:00 UTC)
   → POST /api/refresh (Vercel, validates CRON_SECRET)
-    → Databricks Jobs API (run job DATABRICKS_JOB_ID)
+    → Databricks Jobs API /api/2.1/jobs/run-now (DATABRICKS_JOB_ID)
       → ingest_news.py  → news_raw (Delta)
       → clean_news.py   → news_clean (Delta)
       → sentiment.py    → sentiment_daily + ticker_summary (Delta)
-  → Next.js ISR pages auto-refresh on next user visit (revalidate: 86400)
-    ← Databricks SQL Warehouse (REST API queries from server actions)
+
+cron-job.org Job 2 (7:30am NZT / 19:30 UTC)
+  → POST /api/refresh/complete (Vercel, validates CRON_SECRET)
+    → revalidateTag("sentiment", "default")  [Next.js 16 — requires profile arg]
+  → Next.js ISR pages serve fresh data on next visit (revalidate: 86400)
+    ← Databricks SQL Warehouse (REST API queries via unstable_cache)
 ```
 
 ---
