@@ -11,6 +11,8 @@ export default async function HomePage() {
     // table not yet created — pipeline hasn't run
   }
 
+  const lastUpdated = summaries[0]?.last_updated ?? null
+
   const scored = summaries.filter((s) => s.avg_compound_today != null)
   const overall =
     scored.length > 0
@@ -24,6 +26,11 @@ export default async function HomePage() {
         <p className="text-zinc-400 mt-1 text-sm">
           Daily sentiment from news &amp; social · refreshes 7am NZT
         </p>
+        {lastUpdated && (
+          <p className="text-zinc-500 mt-1 text-xs">
+            Data last updated {formatNzt(lastUpdated)}
+          </p>
+        )}
       </div>
 
       <div className="mb-10 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
@@ -51,6 +58,23 @@ export default async function HomePage() {
         ))}
       </div>
     </div>
+  )
+}
+
+// Databricks CAST(timestamp AS STRING) yields UTC, usually without a zone suffix.
+function formatNzt(ts: string) {
+  const iso = ts.includes("T") ? ts : ts.replace(" ", "T")
+  const date = new Date(iso.endsWith("Z") ? iso : iso + "Z")
+  if (Number.isNaN(date.getTime())) return ts
+  return (
+    new Intl.DateTimeFormat("en-NZ", {
+      timeZone: "Pacific/Auckland",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(date) + " NZT"
   )
 }
 
