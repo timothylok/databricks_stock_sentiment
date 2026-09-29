@@ -88,6 +88,7 @@ One user approval does not authorize the same action in all future contexts. Con
 - Prefer editing existing files over creating new ones.
 - Never create documentation files (`.md`, `README`) or test scaffolding unless explicitly asked.
 - Don't create planning or analysis documents — work from conversation context.
+- `nextjs/package.json` pins `keyv`, `flat-cache`, `file-entry-cache` via `overrides` (merged with the existing `postcss` override) and blocks `cacheable` — this is a deliberate defense against the Aug 2026 Shai-Hulud npm worm that compromised those packages, not stale config. Don't remove or loosen these overrides during dependency cleanup or updates; if a real version bump is needed later, update the pinned value on purpose.
 
 ## 7. Git Discipline
 
@@ -173,7 +174,7 @@ Never read generated artifacts (HTML, compiled output, cached reports) for proje
 - **Backend/pipeline**: Databricks (notebooks + SQL Warehouse + Delta tables, serverless compute)
 - **Automation**: cron-job.org triggers daily refresh via Vercel API route (two jobs: trigger + cache bust)
 - **CI/CD**: GitHub → Vercel (auto-deploy on push)
-- **Sentiment**: VADER (vaderSentiment 3.3.2)
+- **Sentiment**: FinBERT (`ProsusAI/finbert`, transformers 5.17.0 + CPU torch 2.14.0); replaced VADER 2026-09-29
 - **Data sources**: Yahoo Finance RSS (topstories + per-ticker feeds), MarketWatch RSS, Reuters RSS, CNBC Markets/Tech RSS, Apple Newsroom RSS, FinViz HTML scrape (Reddit dropped 2026-07 — anonymous `.json` endpoint now blocked outright)
 - **Tickers**: AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA, AMD, SPY, XLE, RKLB, SPCX
 
