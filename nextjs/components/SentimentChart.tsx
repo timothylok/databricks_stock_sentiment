@@ -23,7 +23,7 @@ export function SentimentChart({ data }: { data: DailyPoint[] }) {
           interval="preserveStartEnd"
         />
         <YAxis
-          domain={[-0.5, 0.5]}
+          domain={[-1, 1]}
           tick={{ fill: "#71717a", fontSize: 11 }}
           tickLine={false}
           axisLine={false}

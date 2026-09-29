@@ -46,8 +46,8 @@ function Stat({ label, value }: { label: string; value: number | null }) {
 function ScoreBadge({ value }: { value: number | null }) {
   const { label, cls } =
     value == null        ? { label: "No data",  cls: "border-zinc-700 text-zinc-400" }
-    : value >= 0.05      ? { label: "Positive",  cls: "border-emerald-800 text-emerald-400" }
-    : value <= -0.05     ? { label: "Negative",  cls: "border-red-900 text-red-400" }
+    : value >= 0.2       ? { label: "Positive",  cls: "border-emerald-800 text-emerald-400" }
+    : value <= -0.2      ? { label: "Negative",  cls: "border-red-900 text-red-400" }
     :                      { label: "Neutral",   cls: "border-zinc-700 text-zinc-400" }
 
   return (
@@ -64,7 +64,7 @@ function fmt(v: number | null): string {
 
 function scoreColor(v: number | null): string {
   if (v == null)  return "text-zinc-400"
-  if (v >= 0.05)  return "text-emerald-400"
-  if (v <= -0.05) return "text-red-400"
+  if (v >= 0.2)   return "text-emerald-400"
+  if (v <= -0.2)  return "text-red-400"
   return "text-zinc-300"
 }

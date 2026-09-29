@@ -82,13 +82,13 @@ function formatNzt(ts: string) {
 }
 
 function moodLabel(c: number) {
-  if (c >= 0.05)  return "Positive"
-  if (c <= -0.05) return "Negative"
+  if (c >= 0.2)   return "Positive"
+  if (c <= -0.2)  return "Negative"
   return "Neutral"
 }
 
 function moodColor(c: number) {
-  if (c >= 0.05)  return "text-emerald-400"
-  if (c <= -0.05) return "text-red-400"
+  if (c >= 0.2)   return "text-emerald-400"
+  if (c <= -0.2)  return "text-red-400"
   return "text-zinc-300"
 }

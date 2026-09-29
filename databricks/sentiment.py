@@ -1,14 +1,18 @@
 # Databricks notebook source
 # COMMAND ----------
 
-# MAGIC %pip install vaderSentiment==3.3.2
+# MAGIC %pip install torch==2.14.0 --index-url https://download.pytorch.org/whl/cpu
+# MAGIC %pip install transformers==5.17.0
 
 # COMMAND ----------
 
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import os
+os.environ.setdefault("HF_HOME", "/tmp/hf")  # serverless home dir isn't guaranteed writable
+
+from transformers import pipeline
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
-from pyspark.sql.types import FloatType, StructField, StructType
+from pyspark.sql.types import FloatType, StringType, StructField, StructType
 from delta.tables import DeltaTable
 from datetime import date, timedelta
 
@@ -21,23 +25,34 @@ DAILY_TABLE   = f"{DATABASE}.sentiment_daily"
 SUMMARY_TABLE = f"{DATABASE}.ticker_summary"
 
 RECOMPUTE_DAYS = 30
-POS_THRESHOLD  =  0.05
-NEG_THRESHOLD  = -0.05
+# FinBERT compound (P(positive) - P(negative)) clusters near ±1 for clear
+# headlines and near 0 for neutral ones, so it needs a wider band than VADER's ±0.05
+POS_THRESHOLD  =  0.2
+NEG_THRESHOLD  = -0.2
+
+# Rows scored by any other model (older VADER rows) get rescored on the next run
+MODEL = "ProsusAI/finbert"
 
 # COMMAND ----------
 
 score_schema = StructType([
+    StructField("id",       StringType()),
     StructField("compound", FloatType()),
     StructField("pos",      FloatType()),
     StructField("neu",      FloatType()),
     StructField("neg",      FloatType()),
 ])
 
-@F.udf(score_schema)
-def vader_score(text: str):
-    # SentimentIntensityAnalyzer is cheap to construct; its lexicon is cached at the module level
-    s = SentimentIntensityAnalyzer().polarity_scores(text or "")
-    return (float(s["compound"]), float(s["pos"]), float(s["neu"]), float(s["neg"]))
+def finbert_score(rows):
+    # A few hundred headlines per run — scoring on the driver is simpler than a
+    # UDF that would load the ~440MB model on every executor
+    clf = pipeline("text-classification", model=MODEL, top_k=None)
+    out = clf([r.title for r in rows], batch_size=32, truncation=True)
+    scored = []
+    for r, scores in zip(rows, out):
+        p = {s["label"]: float(s["score"]) for s in scores}
+        scored.append((r.id, p["positive"] - p["negative"], p["positive"], p["neutral"], p["negative"]))
+    return scored
 
 # COMMAND ----------
 # MAGIC %md ### Step 1 — Score new articles
@@ -47,33 +62,39 @@ def vader_score(text: str):
 clean = spark.table(CLEAN_TABLE).filter(F.size("tickers") > 0)
 
 if spark.catalog.tableExists(SCORES_TABLE):
-    already = spark.table(SCORES_TABLE).select("article_id").distinct()
+    if "model" not in spark.table(SCORES_TABLE).columns:
+        spark.sql(f"ALTER TABLE {SCORES_TABLE} ADD COLUMNS (model STRING)")
+    already = (
+        spark.table(SCORES_TABLE)
+        .filter(F.col("model") == MODEL)
+        .select("article_id").distinct()
+    )
     to_score = clean.join(already, clean.id == already.article_id, "left_anti")
 else:
     to_score = clean
 
-new_count = to_score.count()
+to_score_rows = to_score.select("id", "title").collect()
+new_count = len(to_score_rows)
 print(f"Articles to score: {new_count}")
 
 # COMMAND ----------
 
 if new_count > 0:
+    scores_df = spark.createDataFrame(finbert_score(to_score_rows), score_schema)
+
     # Score once per article, then explode → one row per (article, ticker)
     scored = (
         to_score
-        .withColumn("s",        vader_score("title_normalized"))
-        .withColumn("compound", F.col("s.compound"))
-        .withColumn("pos",      F.col("s.pos"))
-        .withColumn("neu",      F.col("s.neu"))
-        .withColumn("neg",      F.col("s.neg"))
-        .drop("s", "title_normalized")
+        .join(scores_df, "id")
+        .drop("title_normalized")
         .withColumn("ticker", F.explode("tickers"))
         .drop("tickers")
         .withColumn("scored_at", F.current_timestamp())
+        .withColumn("model", F.lit(MODEL))
         .select(
             F.col("id").alias("article_id"),
             "ticker", "source", "title", "published_at",
-            "compound", "pos", "neu", "neg", "scored_at",
+            "compound", "pos", "neu", "neg", "scored_at", "model",
         )
     )
 
@@ -88,7 +109,8 @@ if new_count > 0:
       pos          FLOAT,
       neu          FLOAT,
       neg          FLOAT,
-      scored_at    TIMESTAMP
+      scored_at    TIMESTAMP,
+      model        STRING
     )
     USING DELTA
     PARTITIONED BY (ticker)
@@ -98,6 +120,7 @@ if new_count > 0:
         DeltaTable.forName(spark, SCORES_TABLE)
         .alias("t")
         .merge(scored.alias("s"), "t.article_id = s.article_id AND t.ticker = s.ticker")
+        .whenMatchedUpdateAll()  # rescoring rows from an older model
         .whenNotMatchedInsertAll()
         .execute()
     )

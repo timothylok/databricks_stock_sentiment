@@ -29,8 +29,8 @@ export function HeadlineList({ headlines }: { headlines: Headline[] }) {
 }
 
 function scoreStyle(c: number): string {
-  if (c >= 0.05)  return "bg-emerald-950 text-emerald-400"
-  if (c <= -0.05) return "bg-red-950 text-red-400"
+  if (c >= 0.2)   return "bg-emerald-950 text-emerald-400"
+  if (c <= -0.2)  return "bg-red-950 text-red-400"
   return "bg-zinc-800 text-zinc-400"
 }
 

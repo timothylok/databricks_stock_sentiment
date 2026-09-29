@@ -144,7 +144,7 @@ function fmt(v: number | null): string {
 
 function scoreColor(v: number | null): string {
   if (v == null)  return "text-zinc-400"
-  if (v >= 0.05)  return "text-emerald-400"
-  if (v <= -0.05) return "text-red-400"
+  if (v >= 0.2)   return "text-emerald-400"
+  if (v <= -0.2)  return "text-red-400"
   return "text-zinc-300"
 }
