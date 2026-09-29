@@ -69,3 +69,10 @@
 - Triggered a full validation run (`run_id 568775876979038`) after syncing the repo — all 3 tasks SUCCESS; `ticker_summary` now has data for 10/12 tickers (only SPY, XLE still have zero headline mentions)
 - Found the dashboard was still showing only 3 tickers (GOOGL/MSFT/NVDA) with data — root cause: a manual job trigger outside the 7:00/7:30am NZT cron pair doesn't invalidate the ISR cache, since only `/api/refresh/complete` does that. Fixed by manually POSTing `/api/refresh/complete`; confirmed all 10 tickers now render live
 - What's next: SPY/XLE still need a few more days of runs to confirm whether they'll ever get headline coverage; remember to manually hit `/api/refresh/complete` after any manual job trigger going forward
+
+## 2026-09-30
+- The scheduled 7am NZT run didn't happen. cron-job.org Job 1 was sending GET, which got a silent 405. The user switched it to POST.
+- `/api/refresh` now sends a Discord alert on 401 and on GET (`d63e719`).
+- Started today's run manually (`853100039835826`, SUCCESS) and cleared the site cache.
+- Databricks auto-scoped the PAT (jobs/sql/workspace etc.). Verified that all API calls still work.
+- Next: confirm tomorrow's 7am cron run fires on its own.
