@@ -13,6 +13,8 @@ const SECRET  = process.env.CRON_SECRET!
 // once the job finishes (~30 min later), so we never re-cache stale data.
 export async function POST(req: NextRequest) {
   if (!authorize(req)) {
+    const hasHeader = req.headers.has("authorization")
+    await sendAlert(`🚨 **refresh**: Unauthorized trigger (${hasHeader ? "wrong secret" : "no Authorization header"}), job not started`)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -37,6 +39,12 @@ export async function POST(req: NextRequest) {
   const { run_id } = await res.json()
   console.log(`[refresh] Job triggered — run_id: ${run_id}`)
   return NextResponse.json({ ok: true, run_id })
+}
+
+// cron-job.org once sent GET here and got a silent 405 from Next.js — alert instead.
+export async function GET() {
+  await sendAlert("🚨 **refresh**: Received GET instead of POST, job not started — check the cron-job.org request method")
+  return NextResponse.json({ error: "Method Not Allowed" }, { status: 405, headers: { Allow: "POST" } })
 }
 
 // Syncs the Databricks Repo to the latest commit on main before the job runs,
