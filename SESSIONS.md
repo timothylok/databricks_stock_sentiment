@@ -7,7 +7,10 @@
 - Verified live: dashboard shows "Data last updated 29 Sept 2026, 1:33 pm NZT"; 11/12 ticker pages return 200. XLE still 404s because its newest article (2026-08-25) is outside the 30-day window, so it's absent from `ticker_summary`
 - `/api/refresh` Discord alerts did fire during the outage ("Triggering new runs ... disabled", plus a repo-sync "invalid type" error that cleared once the workspace came back). `/api/refresh/complete` stayed silent: it picked up the Aug 26 success as the latest run and re-cached the empty page every day
 - Closed that gap (uncommitted): `/api/refresh/complete` now alerts and skips cache invalidation when the latest run is >6h old; the home page alerts to Discord when its Databricks query fails
-- What's next: commit/push the alerting changes; XLE should come back once new XLE headlines are ingested; the Databricks repo is 2 commits behind `main` (no Forbes sources in today's run) until the next cron `/api/refresh` syncs it
+- Committed/pushed the alerting changes (`75e91d4`)
+- Switched sentiment from VADER to FinBERT (`ProsusAI/finbert`, `4f39a8a`) after a local comparison on 61 real headlines: VADER misread most "stock drops/tumbles" headlines. A new `model` column triggers automatic rescoring of older rows; verified all 6,099 rows are FinBERT. Positive/negative cut-offs moved from ±0.05 to ±0.2 in the pipeline and dashboard; chart y-axis is now ±1
+- Found `DATABRICKS_REPO_ID` was never set on Vercel, so `/api/refresh`'s repo sync had been failing with "invalid type" and Databricks was stuck on the 2026-07-05 commit. Added it to Production and redeployed; synced the repo by hand for today's run
+- What's next: confirm tomorrow's 7am cron syncs the repo without the Discord alert; watch FinBERT averages as history rebuilds; XLE returns once new XLE headlines arrive; fix mojibake (`â€™`) in ingested titles; `CLAUDE.md` still says VADER
 
 ## 2026-07-09
 - User reported dashboard showing no data; verified end-to-end (Databricks job runs, `news_raw` ingest counts, `ticker_summary` contents, live site via WebFetch) — everything was actually healthy, most likely a stale browser/ISR cache view
