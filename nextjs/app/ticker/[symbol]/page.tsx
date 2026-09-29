@@ -73,6 +73,11 @@ export default async function TickerPage({
       <section className="mb-8 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
         <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-widest mb-5">
           30-Day Trend
+          {trend.length < 30 && (
+            <span className="ml-2 normal-case tracking-normal text-zinc-600">
+              · {trend.length} of 30 days have data
+            </span>
+          )}
         </h2>
         <SentimentChart data={trend} />
       </section>
