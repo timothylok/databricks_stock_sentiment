@@ -12,7 +12,8 @@
 - Found `DATABRICKS_REPO_ID` was never set on Vercel, so `/api/refresh`'s repo sync had been failing with "invalid type" and Databricks was stuck on the 2026-07-05 commit. Added it to Production and redeployed; synced the repo by hand for today's run
 - Upgraded `next` to 16.3.5 and pinned `sharp` 0.35.4 / `postcss` ^8.5.23, which cleared the critical `next` advisories. Deliberately avoided `npm audit fix`, which would have pulled releases only 1–7 days old (`c509ecc`)
 - Fixed duplicate headlines across feeds: `clean_news.py` now dedupes titles against existing `news_clean` (`efb8add`). One-time cleanup deleted 3,331 duplicate articles and 1,771 duplicate scores (about 29% of scores), then rebuilt all `sentiment_daily` history with FinBERT and ±0.2 cut-offs. Verified 0 duplicates after a live `/api/refresh` run, which also confirmed the Vercel repo-ID fix
-- What's next: confirm tomorrow's 7am cron runs clean with no Discord alerts; watch FinBERT averages as history rebuilds; XLE returns once new XLE headlines arrive; fix mojibake (`â€™`) in ingested titles; `CLAUDE.md` still says VADER
+- Investigated reported mojibake (`â€™`) in titles: a false alarm. Stored titles and the live site are correct UTF-8; the garbling came from local Windows tooling decoding as cp1252/ANSI
+- What's next: confirm tomorrow's 7am cron runs clean with no Discord alerts; watch FinBERT averages as history rebuilds; XLE returns once new XLE headlines arrive; `CLAUDE.md` still says VADER
 
 ## 2026-07-09
 - User reported dashboard showing no data; verified end-to-end (Databricks job runs, `news_raw` ingest counts, `ticker_summary` contents, live site via WebFetch) — everything was actually healthy, most likely a stale browser/ISR cache view
