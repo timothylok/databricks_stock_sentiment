@@ -11,7 +11,7 @@ import re
 
 # COMMAND ----------
 
-TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "AMD", "SPY", "XLE", "RKLB", "SPCX"]
+TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "AMD", "SPY", "XLE", "RKLB", "SPCX", "NET"]
 TICKER_PATTERN = re.compile(r"\b(" + "|".join(TICKERS) + r")\b")
 
 # Company name → ticker for enrichment beyond raw symbol matching
@@ -26,6 +26,7 @@ COMPANY_MAP = {
     "facebook": "META",
     "nvidia": "NVDA",
     "rocket lab": "RKLB",
+    "cloudflare": "NET",
 }
 COMPANY_PATTERN = re.compile(
     r"\b(" + "|".join(re.escape(k) for k in COMPANY_MAP) + r")\b"

@@ -176,7 +176,7 @@ Never read generated artifacts (HTML, compiled output, cached reports) for proje
 - **CI/CD**: GitHub → Vercel (auto-deploy on push)
 - **Sentiment**: FinBERT (`ProsusAI/finbert`, transformers 5.17.0 + CPU torch 2.14.0); replaced VADER 2026-09-29
 - **Data sources**: Yahoo Finance RSS (topstories + per-ticker feeds), MarketWatch RSS, Reuters RSS, CNBC Markets/Tech RSS, Apple Newsroom RSS, FinViz HTML scrape (Reddit dropped 2026-07 — anonymous `.json` endpoint now blocked outright)
-- **Tickers**: AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA, AMD, SPY, XLE, RKLB, SPCX
+- **Tickers**: AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA, AMD, SPY, XLE, RKLB, SPCX, NET
 
 ### Key files and entry points
 
