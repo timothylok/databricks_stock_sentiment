@@ -36,6 +36,7 @@ function scoreStyle(c: number): string {
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-NZ", {
+    timeZone: "Pacific/Auckland",
     day: "numeric",
     month: "short",
     hour: "2-digit",
