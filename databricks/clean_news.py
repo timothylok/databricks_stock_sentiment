@@ -77,6 +77,12 @@ cleaned = (
     .select("id", "source", "tickers", "title", "title_normalized", "url", "published_at", "cleaned_at")
 )
 
+# Across batches too: id is hash(source|url), so the same story arriving later via
+# another feed (e.g. yahoo_googl then yahoo_meta) gets a new id and would be scored twice
+if spark.catalog.tableExists(TARGET_TABLE):
+    seen = spark.table(TARGET_TABLE).select("title_normalized")
+    cleaned = cleaned.join(seen, on="title_normalized", how="left_anti")
+
 print(f"After dedup + filtering: {cleaned.count()} rows")
 
 # COMMAND ----------
