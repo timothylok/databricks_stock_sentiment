@@ -76,3 +76,6 @@
 - Started today's run manually (`853100039835826`, SUCCESS) and cleared the site cache.
 - Databricks auto-scoped the PAT (jobs/sql/workspace etc.). Verified that all API calls still work.
 - Next: confirm tomorrow's 7am cron run fires on its own.
+- Headline times on ticker pages now show in NZ time (`c2e8b44`). Before, they rendered in UTC, so this morning's news looked like yesterday's.
+- Added NET (Cloudflare) to the tracked tickers: `_tickers.py` (symbol, "cloudflare" name match, and the `yahoo_net` feed via the TICKERS loop) plus `VALID_TICKERS`.
+- Headline times now show an "NZT" suffix and are parsed as UTC regardless of server timezone. The trend chart is labelled "UTC dates".

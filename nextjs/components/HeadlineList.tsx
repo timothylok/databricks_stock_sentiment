@@ -34,12 +34,14 @@ function scoreStyle(c: number): string {
   return "bg-zinc-800 text-zinc-400"
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-NZ", {
+function formatDate(ts: string): string {
+  // Databricks returns "YYYY-MM-DD HH:MM:SS" with no zone; it's UTC
+  const iso = ts.includes("T") ? ts : ts.replace(" ", "T")
+  return new Date(iso.endsWith("Z") ? iso : iso + "Z").toLocaleDateString("en-NZ", {
     timeZone: "Pacific/Auckland",
     day: "numeric",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
-  })
+  }) + " NZT"
 }
