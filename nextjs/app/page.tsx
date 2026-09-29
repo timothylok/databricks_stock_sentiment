@@ -1,5 +1,6 @@
 import { getTickerSummaries } from "@/lib/databricks"
 import { TickerCard } from "@/components/TickerCard"
+import { sendAlert } from "@/lib/alert"
 
 export const revalidate = 86400
 
@@ -7,8 +8,10 @@ export default async function HomePage() {
   let summaries: Awaited<ReturnType<typeof getTickerSummaries>> = []
   try {
     summaries = await getTickerSummaries()
-  } catch {
-    // table not yet created — pipeline hasn't run
+  } catch (err) {
+    // Render the empty state, but alert — this also hides warehouse outages
+    console.error("[home] getTickerSummaries failed:", err)
+    await sendAlert(`🚨 **dashboard**: Databricks query failed — showing "No data yet"\n${err}`)
   }
 
   const lastUpdated = summaries[0]?.last_updated ?? null

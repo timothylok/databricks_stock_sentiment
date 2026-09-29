@@ -1,5 +1,20 @@
 # Session Log
 
+## 2026-09-29
+- User reported the Vercel site broken; site returned 200 but showed "No data yet" and ticker pages 404'd. The query errors were being hidden by the try/catch in `page.tsx` and `ticker/[symbol]/page.tsx`
+- Root cause: Databricks had marked the workspace inactive on 2026-08-27 (`DENY_NEW_AND_EXISTING_RESOURCES`, denyReason `INACTIVE`), so the SQL warehouse couldn't start. Last successful job run before that was 2026-08-26
+- Fixed by the user completing a "verify you are human" check on the Databricks homepage; no billing change needed. Warehouse started, a job run succeeded at 00:29 UTC, then a manual POST to `/api/refresh/complete` busted the ISR cache
+- Verified live: dashboard shows "Data last updated 29 Sept 2026, 1:33 pm NZT"; 11/12 ticker pages return 200. XLE still 404s because its newest article (2026-08-25) is outside the 30-day window, so it's absent from `ticker_summary`
+- `/api/refresh` Discord alerts did fire during the outage ("Triggering new runs ... disabled", plus a repo-sync "invalid type" error that cleared once the workspace came back). `/api/refresh/complete` stayed silent: it picked up the Aug 26 success as the latest run and re-cached the empty page every day
+- Closed that gap (uncommitted): `/api/refresh/complete` now alerts and skips cache invalidation when the latest run is >6h old; the home page alerts to Discord when its Databricks query fails
+- What's next: commit/push the alerting changes; XLE should come back once new XLE headlines are ingested; the Databricks repo is 2 commits behind `main` (no Forbes sources in today's run) until the next cron `/api/refresh` syncs it
+
+## 2026-07-09
+- User reported dashboard showing no data; verified end-to-end (Databricks job runs, `news_raw` ingest counts, `ticker_summary` contents, live site via WebFetch) — everything was actually healthy, most likely a stale browser/ISR cache view
+- Added a "Data last updated" line to the dashboard header (`nextjs/app/page.tsx`) using the existing `ticker_summary.last_updated` timestamp, formatted in NZT via `Intl.DateTimeFormat`, so users can tell a stale view from a real outage without asking
+- Committed and pushed (`d950651`); confirmed live on Vercel post-deploy
+- What's next: nothing pending; keep watching SPY/XLE and the previously-flagged quiet sources per 2026-07-05 notes
+
 ## 2026-07-02
 - Set up local dev server; fixed `TABLE_OR_VIEW_NOT_FOUND` crash by wrapping `getTickerSummaries()` in try/catch on `page.tsx`
 - Fixed two Vercel build failures: `revalidateTag` requires second `profile` arg in Next.js 16; recharts v3 tooltip `value` type changed to `ValueType | undefined`
