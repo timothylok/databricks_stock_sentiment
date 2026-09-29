@@ -13,6 +13,9 @@
 - Upgraded `next` to 16.3.5 and pinned `sharp` 0.35.4 / `postcss` ^8.5.23, which cleared the critical `next` advisories. Deliberately avoided `npm audit fix`, which would have pulled releases only 1–7 days old (`c509ecc`)
 - Fixed duplicate headlines across feeds: `clean_news.py` now dedupes titles against existing `news_clean` (`efb8add`). One-time cleanup deleted 3,331 duplicate articles and 1,771 duplicate scores (about 29% of scores), then rebuilt all `sentiment_daily` history with FinBERT and ±0.2 cut-offs. Verified 0 duplicates after a live `/api/refresh` run, which also confirmed the Vercel repo-ID fix
 - Investigated reported mojibake (`â€™`) in titles: a false alarm. Stored titles and the live site are correct UTF-8; the garbling came from local Windows tooling decoding as cp1252/ANSI
+- Added a "N of 30 days have data" label to the ticker trend chart, since the outage leaves most charts nearly empty (`b11823b`)
+- Explained AAPL's extra September points: Apple Newsroom's feed keeps weeks of press releases, so 13 outage-period items were picked up (all upbeat PR)
+- Trialled a GDELT backfill for TSLA's outage gap: 8–18 relevant headlines/day where it worked, but heavy HTTP 429 limits (7 of 33 days fetched) and non-finance noise. Decided to leave the gap; it fills naturally by late October
 - What's next: confirm tomorrow's 7am cron runs clean with no Discord alerts; watch FinBERT averages as history rebuilds; XLE returns once new XLE headlines arrive; `CLAUDE.md` still says VADER
 
 ## 2026-07-09
