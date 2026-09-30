@@ -79,3 +79,10 @@
 - Headline times on ticker pages now show in NZ time (`c2e8b44`). Before, they rendered in UTC, so this morning's news looked like yesterday's.
 - Added NET (Cloudflare) to the tracked tickers: `_tickers.py` (symbol, "cloudflare" name match, and the `yahoo_net` feed via the TICKERS loop) plus `VALID_TICKERS`.
 - Headline times now show an "NZT" suffix and are parsed as UTC regardless of server timezone. The trend chart is labelled "UTC dates".
+
+## 2026-10-01
+- Cron health pass: the 7am NZT trigger didn't fire again. Root cause: cron-job.org Job 1 was disabled (Inactive, last executed 09-22), not just the GET/POST issue diagnosed yesterday.
+- Triggered the run manually via `/api/refresh` (`930012449504605`, SUCCESS; repo synced to `e171d84`), then busted the cache. The site shows 1 Oct 8:44am NZT, and NET appears with 6 articles.
+- Re-enabled Job 1 after confirming POST, Pacific/Auckland, and the Authorization header. Next run Fri 2 Oct 7:00am NZT (18:00 UTC during NZ daylight time).
+- The "job disabled" notification was already on (email to the account address). Nothing changed.
+- Next: confirm tomorrow's run fires on its own.

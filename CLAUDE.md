@@ -202,14 +202,14 @@ Never read generated artifacts (HTML, compiled output, cached reports) for proje
 ### Architecture / data flow
 
 ```
-cron-job.org Job 1 (7:00am NZT / 19:00 UTC)
+cron-job.org Job 1 (7:00am Pacific/Auckland = 18:00 UTC NZDT, 19:00 UTC NZST)
   → POST /api/refresh (Vercel, validates CRON_SECRET)
     → Databricks Jobs API /api/2.1/jobs/run-now (DATABRICKS_JOB_ID)
       → ingest_news.py  → news_raw (Delta)
       → clean_news.py   → news_clean (Delta)
       → sentiment.py    → sentiment_daily + ticker_summary (Delta)
 
-cron-job.org Job 2 (7:30am NZT / 19:30 UTC)
+cron-job.org Job 2 (7:30am Pacific/Auckland = 18:30 UTC NZDT, 19:30 UTC NZST)
   → POST /api/refresh/complete (Vercel, validates CRON_SECRET)
     → revalidateTag("sentiment", "default")  [Next.js 16 — requires profile arg]
   → Next.js ISR pages serve fresh data on next visit (revalidate: 86400)
