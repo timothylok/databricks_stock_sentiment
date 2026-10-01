@@ -99,3 +99,5 @@
 - Added TSM, AVGO, ASTS, QQQ, JPM (18 tickers): `_tickers.py` (symbols plus name matches tsmc/taiwan semiconductor, broadcom, ast spacemobile, jpmorgan/jp morgan; QQQ is symbol-only like SPY), `VALID_TICKERS`, and `TICKER_META`. Simple Icons logos for AVGO (Broadcom) and JPM (the Chase octagon); lettered tiles for TSM, ASTS, QQQ. Known noise: "jpmorgan" also tags analyst-note headlines about other stocks.
 - Next: the new tickers appear after the next pipeline run, once they have articles.
 - Labels: "Most bullish/bearish" only when the ticker clears ±0.2, otherwise "Highest/Lowest score". Added display-only "Leaning positive/negative" for ±0.05–0.2 (shared `moodLabel` in `tickerMeta.ts`, used by card badges and Market Mood). Counts, filter, and stored labels still use ±0.2.
+- Decided to keep the ±0.05 lean threshold: AMZN at −0.032 stays "Neutral" (lowering to ±0.02 would mostly label noise).
+- Next: confirm tomorrow's 7am NZT run (3 Oct) renders without a manual cache bust (slow-query polling fix) and that TSM/AVGO/ASTS/QQQ/JPM appear once they have articles; watch JPM for analyst-note noise.
