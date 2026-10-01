@@ -29,15 +29,15 @@ export function SentimentChart({ data }: { data: DailyPoint[] }) {
           axisLine={false}
           tickFormatter={(v: number) => v.toFixed(1)}
         />
-        <ReferenceLine y={0} stroke="#3f3f46" strokeDasharray="3 3" />
+        <ReferenceLine y={0} stroke="var(--chart-ref)" strokeDasharray="3 3" />
         <Tooltip
           contentStyle={{
-            background: "#09090b",
-            border: "1px solid #27272a",
+            background: "var(--tooltip-bg)",
+            border: "1px solid var(--tooltip-border)",
             borderRadius: 8,
             fontSize: 12,
           }}
-          labelStyle={{ color: "#a1a1aa", marginBottom: 4 }}
+          labelStyle={{ color: "var(--tooltip-label)", marginBottom: 4 }}
           formatter={(value) => {
             const v = Number(value)
             return [`${v >= 0 ? "+" : ""}${v.toFixed(4)}`, "Sentiment"]
@@ -46,10 +46,10 @@ export function SentimentChart({ data }: { data: DailyPoint[] }) {
         <Line
           type="monotone"
           dataKey="avg_compound"
-          stroke="#34d399"
+          stroke="var(--chart-line)"
           strokeWidth={2}
           dot={false}
-          activeDot={{ r: 4, fill: "#34d399", strokeWidth: 0 }}
+          activeDot={{ r: 4, fill: "var(--chart-line)", strokeWidth: 0 }}
         />
       </LineChart>
     </ResponsiveContainer>

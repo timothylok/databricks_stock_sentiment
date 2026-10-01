@@ -26,7 +26,7 @@ export default async function HomePage() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Stock Sentiment</h1>
-        <p className="text-zinc-400 mt-1 text-sm">
+        <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-sm">
           Daily sentiment from news &amp; social · refreshes 7am NZT
         </p>
         {lastUpdated && (
@@ -36,7 +36,7 @@ export default async function HomePage() {
         )}
       </div>
 
-      <div className="mb-10 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="mb-10 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-6">
         <p className="text-xs font-medium text-zinc-500 uppercase tracking-widest mb-2">
           Market Mood
         </p>
@@ -88,7 +88,7 @@ function moodLabel(c: number) {
 }
 
 function moodColor(c: number) {
-  if (c >= 0.2)   return "text-emerald-400"
-  if (c <= -0.2)  return "text-red-400"
-  return "text-zinc-300"
+  if (c >= 0.2)   return "text-emerald-600 dark:text-emerald-400"
+  if (c <= -0.2)  return "text-red-600 dark:text-red-400"
+  return "text-zinc-700 dark:text-zinc-300"
 }

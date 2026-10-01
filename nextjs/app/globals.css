@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --chart-ref: #d4d4d8;
+  --chart-line: #059669;
+  --tooltip-bg: #ffffff;
+  --tooltip-border: #e4e4e7;
+  --tooltip-label: #52525b;
+}
+
+.dark {
+  color-scheme: dark;
+  --chart-ref: #3f3f46;
+  --chart-line: #34d399;
+  --tooltip-bg: #09090b;
+  --tooltip-border: #27272a;
+  --tooltip-label: #a1a1aa;
+}

@@ -45,7 +45,7 @@ export default async function TickerPage({
     <div>
       <Link
         href="/"
-        className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors mb-8 inline-block"
+        className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors mb-8 inline-block"
       >
         ← All tickers
       </Link>
@@ -70,12 +70,12 @@ export default async function TickerPage({
         </div>
       </div>
 
-      <section className="mb-8 rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+      <section className="mb-8 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-6">
         <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-widest mb-5">
           30-Day Trend
-          <span className="ml-2 normal-case tracking-normal text-zinc-600">· UTC dates</span>
+          <span className="ml-2 normal-case tracking-normal text-zinc-400 dark:text-zinc-600">· UTC dates</span>
           {trend.length < 30 && (
-            <span className="ml-2 normal-case tracking-normal text-zinc-600">
+            <span className="ml-2 normal-case tracking-normal text-zinc-400 dark:text-zinc-600">
               · {trend.length} of 30 days have data
             </span>
           )}
@@ -102,7 +102,7 @@ export default async function TickerPage({
         </div>
       )}
 
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+      <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-6">
         <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-widest mb-4">
           Recent Headlines
         </h2>
@@ -132,13 +132,13 @@ function Highlight({
 }) {
   const cls =
     variant === "positive"
-      ? "border-emerald-900 text-emerald-500"
-      : "border-red-900 text-red-500"
+      ? "border-emerald-300 dark:border-emerald-900 text-emerald-700 dark:text-emerald-500"
+      : "border-red-300 dark:border-red-900 text-red-700 dark:text-red-500"
 
   return (
-    <div className={`rounded-xl border bg-zinc-900 p-5 ${cls}`}>
+    <div className={`rounded-xl border bg-zinc-50 dark:bg-zinc-900 p-5 ${cls}`}>
       <p className="text-xs font-medium uppercase tracking-widest mb-2">{label}</p>
-      <p className="text-sm text-zinc-200 leading-snug">{text}</p>
+      <p className="text-sm text-zinc-800 dark:text-zinc-200 leading-snug">{text}</p>
     </div>
   )
 }
@@ -149,8 +149,8 @@ function fmt(v: number | null): string {
 }
 
 function scoreColor(v: number | null): string {
-  if (v == null)  return "text-zinc-400"
-  if (v >= 0.2)   return "text-emerald-400"
-  if (v <= -0.2)  return "text-red-400"
-  return "text-zinc-300"
+  if (v == null)  return "text-zinc-500 dark:text-zinc-400"
+  if (v >= 0.2)   return "text-emerald-600 dark:text-emerald-400"
+  if (v <= -0.2)  return "text-red-600 dark:text-red-400"
+  return "text-zinc-700 dark:text-zinc-300"
 }

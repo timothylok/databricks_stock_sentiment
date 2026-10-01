@@ -86,3 +86,10 @@
 - Re-enabled Job 1 after confirming POST, Pacific/Auckland, and the Authorization header. Next run Fri 2 Oct 7:00am NZT (18:00 UTC during NZ daylight time).
 - The "job disabled" notification was already on (email to the account address). Nothing changed.
 - Next: confirm tomorrow's run fires on its own.
+
+## 2026-10-02
+- Cron health pass: the 7am NZT trigger fired on its own (run `914310688469613` at 18:01 UTC, SUCCESS; repo auto-synced to `7a50008`). The re-enabled Job 1 works.
+- But the site showed "No data yet", and AAPL/GOOGL ticker pages returned 404. Cause: a burst of page renders at 20:37 UTC hit a cold SQL warehouse, and queries took 33–40s, longer than `wait_timeout: 30s`. `runQuery` read the PENDING response as zero rows, so the empty page was cached for 24h with no alert. Restored by busting the cache once the warehouse was warm.
+- Fix (local, not yet pushed): `runQuery` polls PENDING/RUNNING statements up to 2 min and throws on any non-SUCCEEDED state.
+- Added light mode with a header toggle: Tailwind `darkMode: "class"`, a pre-paint inline script (localStorage `theme`, falling back to the OS setting), and chart colors via CSS variables. Verified both themes locally.
+- Next: push both changes, then confirm tomorrow's run renders without a manual cache bust.

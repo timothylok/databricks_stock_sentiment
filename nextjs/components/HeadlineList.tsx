@@ -6,11 +6,11 @@ export function HeadlineList({ headlines }: { headlines: Headline[] }) {
   }
 
   return (
-    <ul className="divide-y divide-zinc-800">
+    <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
       {headlines.map((h) => (
         <li key={h.article_id} className="py-3 flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-sm text-zinc-200 leading-snug">{h.title}</p>
+            <p className="text-sm text-zinc-800 dark:text-zinc-200 leading-snug">{h.title}</p>
             <p className="text-xs text-zinc-500 mt-1 capitalize">
               {h.source} · {formatDate(h.published_at)}
             </p>
@@ -29,9 +29,9 @@ export function HeadlineList({ headlines }: { headlines: Headline[] }) {
 }
 
 function scoreStyle(c: number): string {
-  if (c >= 0.2)   return "bg-emerald-950 text-emerald-400"
-  if (c <= -0.2)  return "bg-red-950 text-red-400"
-  return "bg-zinc-800 text-zinc-400"
+  if (c >= 0.2)   return "bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400"
+  if (c <= -0.2)  return "bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400"
+  return "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
 }
 
 function formatDate(ts: string): string {

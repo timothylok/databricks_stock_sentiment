@@ -9,8 +9,8 @@ export function TickerCard({ summary: s }: { summary: TickerSummary }) {
   return (
     <Link
       href={`/ticker/${s.ticker}`}
-      className="block rounded-xl border border-zinc-800 bg-zinc-900 p-5
-                 hover:border-zinc-600 transition-colors duration-150"
+      className="block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-5
+                 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors duration-150"
     >
       <div className="flex items-start justify-between mb-3">
         <span className="text-xl font-bold">{s.ticker}</span>
@@ -45,10 +45,10 @@ function Stat({ label, value }: { label: string; value: number | null }) {
 
 function ScoreBadge({ value }: { value: number | null }) {
   const { label, cls } =
-    value == null        ? { label: "No data",  cls: "border-zinc-700 text-zinc-400" }
-    : value >= 0.2       ? { label: "Positive",  cls: "border-emerald-800 text-emerald-400" }
-    : value <= -0.2      ? { label: "Negative",  cls: "border-red-900 text-red-400" }
-    :                      { label: "Neutral",   cls: "border-zinc-700 text-zinc-400" }
+    value == null        ? { label: "No data",  cls: "border-zinc-300 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400" }
+    : value >= 0.2       ? { label: "Positive",  cls: "border-emerald-300 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400" }
+    : value <= -0.2      ? { label: "Negative",  cls: "border-red-300 dark:border-red-900 text-red-600 dark:text-red-400" }
+    :                      { label: "Neutral",   cls: "border-zinc-300 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400" }
 
   return (
     <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${cls}`}>
@@ -63,8 +63,8 @@ function fmt(v: number | null): string {
 }
 
 function scoreColor(v: number | null): string {
-  if (v == null)  return "text-zinc-400"
-  if (v >= 0.2)   return "text-emerald-400"
-  if (v <= -0.2)  return "text-red-400"
-  return "text-zinc-300"
+  if (v == null)  return "text-zinc-500 dark:text-zinc-400"
+  if (v >= 0.2)   return "text-emerald-600 dark:text-emerald-400"
+  if (v <= -0.2)  return "text-red-600 dark:text-red-400"
+  return "text-zinc-700 dark:text-zinc-300"
 }
