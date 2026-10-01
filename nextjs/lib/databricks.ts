@@ -47,6 +47,7 @@ export interface Headline {
 // ─── Core client ──────────────────────────────────────────────────────────────
 
 interface StmtResponse {
+  statement_id: string
   status:    { state: string; error?: { message: string } }
   manifest?: { schema: { columns: Array<{ name: string }> } }
   result?:   { schema: { columns: Array<{ name: string }> }; data_array?: string[][] }
@@ -70,10 +71,23 @@ async function runQuery<T>(sql: string): Promise<T[]> {
 
   if (!res.ok) throw new Error(`Databricks: HTTP ${res.status}`)
 
-  const data: StmtResponse = await res.json()
+  let data: StmtResponse = await res.json()
 
-  if (data.status.state === "FAILED") {
-    throw new Error(data.status.error?.message ?? "Query failed")
+  // A cold warehouse can take longer than wait_timeout; the statement then comes
+  // back PENDING/RUNNING with no rows, so poll it instead of reading it as empty.
+  const deadline = Date.now() + 120_000
+  while (data.status.state === "PENDING" || data.status.state === "RUNNING") {
+    if (Date.now() > deadline) throw new Error(`Databricks: query still ${data.status.state} after 2 min`)
+    await new Promise((r) => setTimeout(r, 3000))
+    const poll = await fetch(`${HOST}/api/2.0/sql/statements/${data.statement_id}`, {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    })
+    if (!poll.ok) throw new Error(`Databricks: HTTP ${poll.status}`)
+    data = await poll.json()
+  }
+
+  if (data.status.state !== "SUCCEEDED") {
+    throw new Error(data.status.error?.message ?? `Query ${data.status.state}`)
   }
 
   const columns = (data.manifest ?? data.result)?.schema.columns ?? []
