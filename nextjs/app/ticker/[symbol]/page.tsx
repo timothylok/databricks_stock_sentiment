@@ -3,6 +3,9 @@ import { notFound } from "next/navigation"
 import { getTickerSummaries, getTickerTrend, getRecentHeadlines } from "@/lib/databricks"
 import { SentimentChart } from "@/components/SentimentChart"
 import { HeadlineList } from "@/components/HeadlineList"
+import { TickerLogo } from "@/components/TickerLogo"
+import { SentimentBar } from "@/components/SentimentBar"
+import { TICKER_META } from "@/lib/tickerMeta"
 
 export const revalidate = 86400
 
@@ -50,23 +53,38 @@ export default async function TickerPage({
         ← All tickers
       </Link>
 
-      <div className="mb-8">
-        <p className="text-xs font-medium text-zinc-500 uppercase tracking-widest mb-1">
-          Ticker
-        </p>
-        <h1 className="text-4xl font-bold">{symbol}</h1>
-        <div className={`text-5xl font-bold font-mono mt-2 ${scoreColor(score)}`}>
-          {fmt(score)}
+      <div className="mb-8 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <TickerLogo ticker={symbol} size="lg" />
+            <div>
+              <h1 className="text-4xl font-bold leading-none">{symbol}</h1>
+              <p className="text-zinc-500 text-sm mt-1.5">{TICKER_META[symbol]?.name}</p>
+            </div>
+          </div>
+          <div className="sm:text-right">
+            <div className={`text-5xl font-bold font-mono ${scoreColor(score)}`}>
+              {fmt(score)}
+            </div>
+            <p className="text-zinc-500 text-sm mt-1">
+              {hasToday
+                ? `today · ${summary.article_count_today ?? 0} articles`
+                : `no headlines today · showing ${fallbackLabel}`}
+            </p>
+          </div>
         </div>
-        <p className="text-zinc-500 text-sm mt-1">
-          {hasToday
-            ? `today · ${summary.article_count_today ?? 0} articles`
-            : `no headlines today · showing ${fallbackLabel}`}
-        </p>
 
-        <div className="flex gap-6 mt-4 text-sm">
-          <Stat label="7d avg"  value={summary.avg_compound_7d} />
-          <Stat label="30d avg" value={summary.avg_compound_30d} />
+        <div className="mt-5">
+          <SentimentBar value={score} />
+          <div className="mt-1 flex justify-between text-[10px] text-zinc-400 dark:text-zinc-600 font-mono">
+            <span>−1</span><span>0</span><span>+1</span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mt-4 text-sm">
+          <Pill label="Today"   value={summary.avg_compound_today} />
+          <Pill label="7d avg"  value={summary.avg_compound_7d} />
+          <Pill label="30d avg" value={summary.avg_compound_30d} />
         </div>
       </div>
 
@@ -112,12 +130,13 @@ export default async function TickerPage({
   )
 }
 
-function Stat({ label, value }: { label: string; value: number | null }) {
+function Pill({ label, value }: { label: string; value: number | null }) {
   return (
-    <div>
-      <p className="text-zinc-500 text-xs mb-0.5">{label}</p>
-      <p className={`font-mono font-medium ${scoreColor(value)}`}>{fmt(value)}</p>
-    </div>
+    <span className="inline-flex items-center gap-2 rounded-full border border-zinc-200 dark:border-zinc-800
+                     bg-white dark:bg-zinc-950 px-3 py-1">
+      <span className="text-zinc-500 text-xs">{label}</span>
+      <span className={`font-mono font-medium ${scoreColor(value)}`}>{fmt(value)}</span>
+    </span>
   )
 }
 

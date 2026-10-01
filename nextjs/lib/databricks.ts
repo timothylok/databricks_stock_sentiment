@@ -179,3 +179,19 @@ export const getRecentHeadlines = (ticker: string, limit = 20): Promise<Headline
     { revalidate: 86400, tags: ["sentiment", `ticker-${ticker}`] }
   )()
 }
+
+// Last 7 days for every ticker in one query, for the home-page sparklines.
+export const getRecentTrends = unstable_cache(
+  async (): Promise<Array<{ ticker: string; date: string; avg_compound: number }>> =>
+    runQuery(`
+      SELECT
+        ticker,
+        CAST(date AS STRING) AS date,
+        avg_compound
+      FROM stock_sentiment.sentiment_daily
+      WHERE date >= date_sub(current_date(), 7)
+      ORDER BY ticker, date
+    `),
+  ["recent-trends"],
+  { revalidate: 86400, tags: ["sentiment"] }
+)

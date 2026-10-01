@@ -1,10 +1,19 @@
-import { getTickerSummaries } from "@/lib/databricks"
-import { TickerCard } from "@/components/TickerCard"
+import Link from "next/link"
+import { getTickerSummaries, getRecentTrends, type TickerSummary } from "@/lib/databricks"
+import { TickerGrid } from "@/components/TickerGrid"
+import { TickerLogo } from "@/components/TickerLogo"
+import { bucketOf } from "@/lib/tickerMeta"
 import { sendAlert } from "@/lib/alert"
 
 export const revalidate = 86400
 
 export default async function HomePage() {
+  // Sparklines are optional: a failed trend query just hides them
+  const trendRows = getRecentTrends().catch((err) => {
+    console.error("[home] getRecentTrends failed:", err)
+    return []
+  })
+
   let summaries: Awaited<ReturnType<typeof getTickerSummaries>> = []
   try {
     summaries = await getTickerSummaries()
@@ -14,7 +23,19 @@ export default async function HomePage() {
     await sendAlert(`🚨 **dashboard**: Databricks query failed — showing "No data yet"\n${err}`)
   }
 
+  const trends: Record<string, number[]> = {}
+  for (const r of await trendRows) (trends[r.ticker] ??= []).push(r.avg_compound)
+
   const lastUpdated = summaries[0]?.last_updated ?? null
+
+  const withScore = summaries
+    .map((s) => ({ s, v: s.avg_compound_today ?? s.avg_compound_7d ?? s.avg_compound_30d }))
+    .filter((x): x is { s: TickerSummary; v: number } => x.v != null)
+    .sort((a, b) => b.v - a.v)
+  const counts = { positive: 0, neutral: 0, negative: 0 }
+  for (const { v } of withScore) counts[bucketOf(v)]++
+  const bullish = withScore[0]
+  const bearish = withScore.length > 1 ? withScore[withScore.length - 1] : undefined
 
   const scored = summaries.filter((s) => s.avg_compound_today != null)
   const overall =
@@ -41,25 +62,34 @@ export default async function HomePage() {
           Market Mood
         </p>
         {overall != null ? (
-          <div className="flex items-baseline gap-3">
-            <span className={`text-4xl font-bold ${moodColor(overall)}`}>
-              {moodLabel(overall)}
-            </span>
-            <span className={`text-xl font-mono ${moodColor(overall)}`}>
-              {overall >= 0 ? "+" : ""}
-              {overall.toFixed(4)}
-            </span>
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="flex items-baseline gap-3">
+                <span className={`text-4xl font-bold ${moodColor(overall)}`}>
+                  {moodLabel(overall)}
+                </span>
+                <span className={`text-xl font-mono ${moodColor(overall)}`}>
+                  {overall >= 0 ? "+" : ""}
+                  {overall.toFixed(4)}
+                </span>
+              </div>
+              <div className="mt-3 flex gap-4 text-xs">
+                <Count n={counts.positive} label="positive" dot="bg-emerald-500" />
+                <Count n={counts.neutral}  label="neutral"  dot="bg-zinc-400" />
+                <Count n={counts.negative} label="negative" dot="bg-red-500" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 md:w-80">
+              {bullish && <Mover title="Most bullish" ticker={bullish.s.ticker} value={bullish.v} />}
+              {bearish && <Mover title="Most bearish" ticker={bearish.s.ticker} value={bearish.v} />}
+            </div>
           </div>
         ) : (
           <p className="text-zinc-500">No data yet — run the pipeline first.</p>
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {summaries.map((s) => (
-          <TickerCard key={s.ticker} summary={s} />
-        ))}
-      </div>
+      {summaries.length > 0 && <TickerGrid summaries={summaries} trends={trends} />}
     </div>
   )
 }
@@ -78,6 +108,36 @@ function formatNzt(ts: string) {
       hour: "numeric",
       minute: "2-digit",
     }).format(date) + " NZT"
+  )
+}
+
+function Count({ n, label, dot }: { n: number; label: string; dot: string }) {
+  return (
+    <span className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
+      <span className={`h-2 w-2 rounded-full ${dot}`} />
+      <span className="font-semibold text-zinc-900 dark:text-zinc-100">{n}</span> {label}
+    </span>
+  )
+}
+
+function Mover({ title, ticker, value }: { title: string; ticker: string; value: number }) {
+  return (
+    <Link
+      href={`/ticker/${ticker}`}
+      className="flex items-center gap-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800
+                 bg-white dark:bg-zinc-950 p-2.5 hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+    >
+      <TickerLogo ticker={ticker} />
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase tracking-widest text-zinc-500">{title}</p>
+        <p className="text-sm font-semibold">
+          {ticker}{" "}
+          <span className={`font-mono text-xs ${moodColor(value)}`}>
+            {value >= 0 ? "+" : ""}{value.toFixed(3)}
+          </span>
+        </p>
+      </div>
+    </Link>
   )
 }
 

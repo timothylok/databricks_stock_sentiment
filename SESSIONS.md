@@ -93,3 +93,6 @@
 - Fix (local, not yet pushed): `runQuery` polls PENDING/RUNNING statements up to 2 min and throws on any non-SUCCEEDED state.
 - Added light mode with a header toggle: Tailwind `darkMode: "class"`, a pre-paint inline script (localStorage `theme`, falling back to the OS setting), and chart colors via CSS variables. Verified both themes locally.
 - Next: push both changes, then confirm tomorrow's run renders without a manual cache bust.
+- Brand logos + UI pass (local, not yet pushed): `lib/tickerMeta.ts` holds each ticker's name and brand color. Logos are white Simple Icons (CC0) SVGs in `public/logos/` on a brand-color tile. RKLB, SPY, XLE and AMD use lettered tiles (no icon, or the icon was unreadable at tile size).
+- Cards now show the logo and company name, a 7-day sparkline (one batched `getRecentTrends` query), and a diverging sentiment bar. The home page has positive/neutral/negative counts plus most bullish/bearish tickers, and sort (A–Z/score/articles) and filter controls. The ticker page has a logo header and today/7d/30d pills.
+- Next: push. A new ticker now also needs a `TICKER_META` entry (and optionally a logo).
