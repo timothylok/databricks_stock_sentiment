@@ -80,8 +80,21 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3 md:w-80">
-              {bullish && <Mover title="Most bullish" ticker={bullish.s.ticker} value={bullish.v} />}
-              {bearish && <Mover title="Most bearish" ticker={bearish.s.ticker} value={bearish.v} />}
+              {/* Only call it bullish/bearish when it clears the ±0.2 cut-off the counts use */}
+              {bullish && (
+                <Mover
+                  title={bucketOf(bullish.v) === "positive" ? "Most bullish" : "Highest score"}
+                  ticker={bullish.s.ticker}
+                  value={bullish.v}
+                />
+              )}
+              {bearish && (
+                <Mover
+                  title={bucketOf(bearish.v) === "negative" ? "Most bearish" : "Lowest score"}
+                  ticker={bearish.s.ticker}
+                  value={bearish.v}
+                />
+              )}
             </div>
           </div>
         ) : (
