@@ -34,3 +34,11 @@ export type Bucket = "positive" | "neutral" | "negative"
 export function bucketOf(v: number): Bucket {
   return v >= 0.2 ? "positive" : v <= -0.2 ? "negative" : "neutral"
 }
+
+// Display-only nuance inside the neutral band; counts and filters still use bucketOf
+export function moodLabel(v: number): string {
+  const b = bucketOf(v)
+  if (b === "positive") return "Positive"
+  if (b === "negative") return "Negative"
+  return v >= 0.05 ? "Leaning positive" : v <= -0.05 ? "Leaning negative" : "Neutral"
+}

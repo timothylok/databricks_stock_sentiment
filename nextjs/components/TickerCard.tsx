@@ -1,6 +1,6 @@
 import Link from "next/link"
 import type { TickerSummary } from "@/lib/databricks"
-import { TICKER_META } from "@/lib/tickerMeta"
+import { TICKER_META, moodLabel } from "@/lib/tickerMeta"
 import { TickerLogo } from "@/components/TickerLogo"
 import { Sparkline } from "@/components/Sparkline"
 import { SentimentBar } from "@/components/SentimentBar"
@@ -59,15 +59,20 @@ function Stat({ label, value }: { label: string; value: number | null }) {
   )
 }
 
+const BADGE_CLS: Record<string, string> = {
+  "Positive":         "border-emerald-300 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400",
+  "Negative":         "border-red-300 dark:border-red-900 text-red-600 dark:text-red-400",
+  "Leaning positive": "border-zinc-300 dark:border-zinc-700 text-emerald-700 dark:text-emerald-500",
+  "Leaning negative": "border-zinc-300 dark:border-zinc-700 text-red-700 dark:text-red-500",
+  "Neutral":          "border-zinc-300 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400",
+}
+
 function ScoreBadge({ value }: { value: number | null }) {
-  const { label, cls } =
-    value == null        ? { label: "No data",  cls: "border-zinc-300 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400" }
-    : value >= 0.2       ? { label: "Positive",  cls: "border-emerald-300 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400" }
-    : value <= -0.2      ? { label: "Negative",  cls: "border-red-300 dark:border-red-900 text-red-600 dark:text-red-400" }
-    :                      { label: "Neutral",   cls: "border-zinc-300 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400" }
+  const label = value == null ? "No data" : moodLabel(value)
+  const cls = BADGE_CLS[label] ?? BADGE_CLS.Neutral
 
   return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${cls}`}>
+    <span className={`shrink-0 whitespace-nowrap text-xs font-medium px-2 py-0.5 rounded-full border ${cls}`}>
       {label}
     </span>
   )

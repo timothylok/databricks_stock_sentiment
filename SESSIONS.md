@@ -98,3 +98,4 @@
 - Next: push. A new ticker now also needs a `TICKER_META` entry (and optionally a logo).
 - Added TSM, AVGO, ASTS, QQQ, JPM (18 tickers): `_tickers.py` (symbols plus name matches tsmc/taiwan semiconductor, broadcom, ast spacemobile, jpmorgan/jp morgan; QQQ is symbol-only like SPY), `VALID_TICKERS`, and `TICKER_META`. Simple Icons logos for AVGO (Broadcom) and JPM (the Chase octagon); lettered tiles for TSM, ASTS, QQQ. Known noise: "jpmorgan" also tags analyst-note headlines about other stocks.
 - Next: the new tickers appear after the next pipeline run, once they have articles.
+- Labels: "Most bullish/bearish" only when the ticker clears ±0.2, otherwise "Highest/Lowest score". Added display-only "Leaning positive/negative" for ±0.05–0.2 (shared `moodLabel` in `tickerMeta.ts`, used by card badges and Market Mood). Counts, filter, and stored labels still use ±0.2.

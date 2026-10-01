@@ -2,7 +2,7 @@ import Link from "next/link"
 import { getTickerSummaries, getRecentTrends, type TickerSummary } from "@/lib/databricks"
 import { TickerGrid } from "@/components/TickerGrid"
 import { TickerLogo } from "@/components/TickerLogo"
-import { bucketOf } from "@/lib/tickerMeta"
+import { bucketOf, moodLabel } from "@/lib/tickerMeta"
 import { sendAlert } from "@/lib/alert"
 
 export const revalidate = 86400
@@ -152,12 +152,6 @@ function Mover({ title, ticker, value }: { title: string; ticker: string; value:
       </div>
     </Link>
   )
-}
-
-function moodLabel(c: number) {
-  if (c >= 0.2)   return "Positive"
-  if (c <= -0.2)  return "Negative"
-  return "Neutral"
 }
 
 function moodColor(c: number) {
