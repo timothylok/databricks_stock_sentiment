@@ -11,7 +11,8 @@ const VALID_TICKERS = new Set([
   "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA",
   "META", "NVDA", "AMD",  "SPY",
   "XLE",  "RKLB", "SPCX",
-  "NET",
+  "NET",  "TSM",  "AVGO",
+  "ASTS", "QQQ",  "JPM",
 ])
 
 // ─── Types ────────────────────────────────────────────────────────────────────

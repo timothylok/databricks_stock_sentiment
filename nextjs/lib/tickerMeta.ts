@@ -21,6 +21,11 @@ export const TICKER_META: Record<string, TickerMeta> = {
   RKLB:  { name: "Rocket Lab",                  color: "#1F2937", mark: "RL" },
   SPY:   { name: "SPDR S&P 500 ETF",            color: "#003B71", mark: "SPY" },
   XLE:   { name: "Energy Select Sector SPDR",   color: "#C2410C", mark: "XLE" },
+  TSM:   { name: "TSMC",                        color: "#C4161C", mark: "TSM" },
+  AVGO:  { name: "Broadcom",                    color: "#E31837", logo: true },
+  ASTS:  { name: "AST SpaceMobile",             color: "#0B1F3A", mark: "AST" },
+  QQQ:   { name: "Invesco QQQ (Nasdaq-100)",    color: "#1E3A8A", mark: "QQQ" },
+  JPM:   { name: "JPMorgan Chase",              color: "#117ACA", logo: true },
 }
 
 export type Bucket = "positive" | "neutral" | "negative"
