@@ -113,5 +113,6 @@
 - Verified after the deploy: home shows 3 Oct 7:05am NZT, AMZN/NVDA/JPM pages go to 2 Oct, an unknown ticker returns 404, and no runtime errors since the deploy. Open items moved into TODO.md.
 - Next: confirm tomorrow's 7:30 bust leaves every page fresh; keep watching JPM for analyst-note noise.
 - Root-caused the "Databricks query failed" Discord alert (14:29 NZT): the cold warehouse took >2 min to start, so `runQuery` gave up with "query still PENDING after 2 min". Nothing failed on the warehouse side; the batch started running exactly when the poll timed out. This was the same incident as above, before `4d1bfdf`.
-- Fix (local, not yet pushed): `/api/refresh/complete` now calls `wakeWarehouse()` (`lib/databricks.ts`: POST `/sql/warehouses/{id}/start`, poll for up to 3 min until RUNNING) before `revalidateTag` and the page warm-up; `maxDuration = 300`. Verified the PAT can start the warehouse (STOPPED → RUNNING in ~10s).
-- Next: push, then confirm the 7:30 bust sends no alert.
+- Fix (`ca65d6d`, pushed and deployed; live home still shows 3 Oct 7:05am NZT): `/api/refresh/complete` now calls `wakeWarehouse()` (`lib/databricks.ts`: POST `/sql/warehouses/{id}/start`, poll for up to 3 min until RUNNING) before `revalidateTag` and the page warm-up; `maxDuration = 300`. Verified the PAT can start the warehouse (STOPPED → RUNNING in ~10s).
+- Diagnostic used: Vercel CLI `vercel logs --environment production --since 3h --level error -x` from a scratch-linked folder showed the exact error text (Hobby keeps ~1h–3h).
+- Next: confirm tomorrow's 7:30 NZT bust sends no Discord alert and every page is fresh (the cold-start path of `wakeWarehouse` is only tested then).
