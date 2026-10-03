@@ -4,6 +4,15 @@ Outstanding items for next session.
 
 ---
 
+## Confirm the 7:30 cache bust leaves every page fresh (from 2026-10-03, `4d1bfdf`)
+- `/api/refresh/complete` now loads `/` and every `/ticker/<T>` right after `revalidateTag("sentiment", "default")`. Check on 4 Oct NZT that AMZN/NVDA etc. show the latest UTC date on the first visit. Before this fix, a ticker page served the previous day's copy to its first visitor.
+- Query errors now propagate from `app/page.tsx` and `app/ticker/[symbol]/page.tsx`, so a failed ISR rebuild (for example a cold warehouse taking more than 2 min) keeps the last good page instead of caching "No data yet" or a 404. Watch Discord for `dashboard: Databricks query failed — keeping the previous page`. If it appears often at 7:30, start the warehouse first (`POST /api/2.0/sql/warehouses/{id}/start`) or raise the poll limit.
+- Recovery if the site ever caches an empty page again: `/api/refresh/complete` refuses after 6h (stale-run guard), so redeploy production instead. The build prerenders every page.
+
+## Pending decisions
+- GHA + Cloudflare migration: option A (keep Delta via the SQL warehouse) or B (move off Databricks). See SESSIONS.md 2026-10-02.
+- Watch JPM for analyst-note noise ("jpmorgan" tags headlines about other stocks).
+
 ## Verify new tickers appear in dashboard
 `ingest_news.py` had a stale ticker list — it still tagged NFLX and never tagged XLE/RKLB/SPCX, out of sync with `clean_news.py`. Fixed 2026-07-04 by centralizing both into `databricks/_tickers.py` (via `%run`). Confirmed working via manual job runs the same day (`ingest_news`/`clean_news`/`sentiment` all `SUCCESS`). RKLB and SPCX now have dashboard cards. XLE and SPY still don't, as of 2026-07-05 — see below.
 
