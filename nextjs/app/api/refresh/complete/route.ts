@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { sendAlert } from "@/lib/alert"
-import { VALID_TICKERS } from "@/lib/databricks"
+import { VALID_TICKERS, wakeWarehouse } from "@/lib/databricks"
+
+// Up to 3 min waiting for the warehouse plus the page warm-up.
+export const maxDuration = 300
 
 const HOST   = process.env.DATABRICKS_HOST!
 const TOKEN  = process.env.DATABRICKS_TOKEN!
@@ -50,6 +53,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, run_id, state }, { status: 200 })
     }
   }
+
+  // The warehouse has usually auto-stopped by 7:30; a cold start can outlast runQuery's
+  // 2-min poll and fail every warm-up render below, so start it first.
+  const warehouseState = await wakeWarehouse()
+  console.log(`[refresh/complete] Warehouse state before warm-up: ${warehouseState}`)
 
   revalidateTag("sentiment", "default")
   console.log("[refresh/complete] ISR cache invalidated")

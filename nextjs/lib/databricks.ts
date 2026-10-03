@@ -102,6 +102,23 @@ async function runQuery<T>(sql: string): Promise<T[]> {
   )
 }
 
+// Start the warehouse and wait until it's RUNNING, so page rebuilds that follow
+// don't hit a cold start longer than runQuery's 2-min poll. Returns the last state seen.
+export async function wakeWarehouse(timeoutMs = 180_000): Promise<string> {
+  const url = `${HOST}/api/2.0/sql/warehouses/${WAREHOUSE_ID}`
+  const headers = { Authorization: `Bearer ${TOKEN}` }
+  await fetch(`${url}/start`, { method: "POST", headers })
+  const deadline = Date.now() + timeoutMs
+  let state = "UNKNOWN"
+  while (Date.now() < deadline) {
+    const res = await fetch(url, { headers, cache: "no-store" })
+    if (res.ok) state = (await res.json()).state
+    if (state === "RUNNING") break
+    await new Promise((r) => setTimeout(r, 5000))
+  }
+  return state
+}
+
 // Databricks returns all values as strings; cast numerics back to numbers.
 function coerce(v: string | null): string | number | null {
   if (v === null || v === "") return null
