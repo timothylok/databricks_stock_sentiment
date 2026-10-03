@@ -7,7 +7,7 @@ const WAREHOUSE_ID =
   process.env.DATABRICKS_WAREHOUSE_ID ??
   process.env.DATABRICKS_SQL_HTTP_PATH?.split("/").at(-1)
 
-const VALID_TICKERS = new Set([
+export const VALID_TICKERS = new Set([
   "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA",
   "META", "NVDA", "AMD",  "SPY",
   "XLE",  "RKLB", "SPCX",

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { sendAlert } from "@/lib/alert"
+import { VALID_TICKERS } from "@/lib/databricks"
 
 const HOST   = process.env.DATABRICKS_HOST!
 const TOKEN  = process.env.DATABRICKS_TOKEN!
@@ -52,6 +53,12 @@ export async function POST(req: NextRequest) {
 
   revalidateTag("sentiment", "default")
   console.log("[refresh/complete] ISR cache invalidated")
+
+  // revalidateTag only marks pages stale: the next visit to each page still gets the
+  // old copy and starts the rebuild. Visit every page now so real visitors see fresh data.
+  const origin = req.nextUrl.origin
+  const paths = ["/", ...[...VALID_TICKERS].map((t) => `/ticker/${t}`)]
+  await Promise.allSettled(paths.map((p) => fetch(`${origin}${p}`, { cache: "no-store" })))
   return NextResponse.json({ ok: true, run_id: run_id ?? null })
 }
 

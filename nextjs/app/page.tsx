@@ -14,13 +14,14 @@ export default async function HomePage() {
     return []
   })
 
-  let summaries: Awaited<ReturnType<typeof getTickerSummaries>> = []
+  let summaries: Awaited<ReturnType<typeof getTickerSummaries>>
   try {
     summaries = await getTickerSummaries()
   } catch (err) {
-    // Render the empty state, but alert — this also hides warehouse outages
+    // Rethrow so ISR keeps serving the last good page instead of caching an empty one
     console.error("[home] getTickerSummaries failed:", err)
-    await sendAlert(`🚨 **dashboard**: Databricks query failed — showing "No data yet"\n${err}`)
+    await sendAlert(`🚨 **dashboard**: Databricks query failed — keeping the previous page\n${err}`)
+    throw err
   }
 
   const trends: Record<string, number[]> = {}

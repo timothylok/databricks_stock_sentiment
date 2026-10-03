@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { getTickerSummaries, getTickerTrend, getRecentHeadlines } from "@/lib/databricks"
+import { getTickerSummaries, getTickerTrend, getRecentHeadlines, VALID_TICKERS } from "@/lib/databricks"
 import { SentimentChart } from "@/components/SentimentChart"
 import { HeadlineList } from "@/components/HeadlineList"
 import { TickerLogo } from "@/components/TickerLogo"
@@ -25,17 +25,14 @@ export default async function TickerPage({
 }) {
   const { symbol: raw } = await params
   const symbol = raw.toUpperCase()
+  if (!VALID_TICKERS.has(symbol)) notFound()
 
-  let summaries, trend, headlines
-  try {
-    ;[summaries, trend, headlines] = await Promise.all([
-      getTickerSummaries(),
-      getTickerTrend(symbol, 30),
-      getRecentHeadlines(symbol, 20),
-    ])
-  } catch {
-    notFound()
-  }
+  // Query errors propagate so ISR keeps the last good page instead of caching a 404
+  const [summaries, trend, headlines] = await Promise.all([
+    getTickerSummaries(),
+    getTickerTrend(symbol, 30),
+    getRecentHeadlines(symbol, 20),
+  ])
 
   const summary = summaries.find((s) => s.ticker === symbol)
   if (!summary) notFound()
