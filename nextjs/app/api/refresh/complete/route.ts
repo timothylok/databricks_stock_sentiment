@@ -64,9 +64,14 @@ export async function POST(req: NextRequest) {
 
   // revalidateTag only marks pages stale: the next visit to each page still gets the
   // old copy and starts the rebuild. Visit every page now so real visitors see fresh data.
+  // The first pass is itself served stale, so visit again once the rebuilds have had time
+  // to land (on 2026-10-04 some pages still served old data a minute later).
   const origin = req.nextUrl.origin
   const paths = ["/", ...[...VALID_TICKERS].map((t) => `/ticker/${t}`)]
-  await Promise.allSettled(paths.map((p) => fetch(`${origin}${p}`, { cache: "no-store" })))
+  const warm = () => Promise.allSettled(paths.map((p) => fetch(`${origin}${p}`, { cache: "no-store" })))
+  await warm()
+  await new Promise((r) => setTimeout(r, 30_000))
+  await warm()
   return NextResponse.json({ ok: true, run_id: run_id ?? null })
 }
 
