@@ -4,14 +4,18 @@ Outstanding items for next session.
 
 ---
 
-## Confirm the 7:30 cache bust leaves every page fresh (from 2026-10-03, `4d1bfdf`)
-- `/api/refresh/complete` now loads `/` and every `/ticker/<T>` right after `revalidateTag("sentiment", "default")`. Check on 4 Oct NZT that AMZN/NVDA etc. show the latest UTC date on the first visit. Before this fix, a ticker page served the previous day's copy to its first visitor.
-- Query errors now propagate from `app/page.tsx` and `app/ticker/[symbol]/page.tsx`, so a failed ISR rebuild (for example a cold warehouse taking more than 2 min) keeps the last good page instead of caching "No data yet" or a 404. Watch Discord for `dashboard: Databricks query failed — keeping the previous page`. If it appears often at 7:30, start the warehouse first (`POST /api/2.0/sql/warehouses/{id}/start`) or raise the poll limit.
+## Confirm the 7:30 cache bust lands (from 2026-10-05, `8674235`)
+- On 5 Oct the 7:30 bust timed out in cron-job.org ("did not fully respond within the configured timeout", 30s limit). `/complete` took ~32s because of the page warm-up and the 30s sleep, so the handler never returned and `revalidateTag` never applied. The tag is only invalidated after the handler returns, so the warm-up never helped anyway.
+- `/complete` now only checks the run, sends the warehouse start request without waiting (`wakeWarehouse(0)`), and calls `revalidateTag`. It returned in 1.9s on production.
+- Check on 6 Oct NZT: cron-job.org Job 2 shows success at 7:30, and the site shows 6 Oct data (home and a few ticker pages) without a manual bust.
+- Query errors still propagate from `app/page.tsx` and `app/ticker/[symbol]/page.tsx`, so a failed ISR rebuild keeps the last good page. Watch Discord for `dashboard: Databricks query failed — keeping the previous page`. If it shows up after 7:30, warm the pages in `after()` (which runs after the tag is applied) rather than in the handler body.
 - Recovery if the site ever caches an empty page again: `/api/refresh/complete` refuses after 6h (stale-run guard), so redeploy production instead. The build prerenders every page.
+- Keep `/complete` well under 30s, or raise Job 2's timeout in cron-job.org's advanced settings.
 
 ## Pending decisions
 - GHA + Cloudflare migration: option A (keep Delta via the SQL warehouse) or B (move off Databricks). See SESSIONS.md 2026-10-02.
 - Watch JPM for analyst-note noise ("jpmorgan" tags headlines about other stocks).
+- Headline-wording variance (found 2026-10-05): the same TheStreet AMZN story scored +0.06 on the Yahoo headline and −0.95 on the MSN headline. Options: score the RSS description along with the title (pipeline change plus re-score), or accept it as noise that averages out. Not worth acting on a single article; collect more examples first.
 
 ## Verify new tickers appear in dashboard
 `ingest_news.py` had a stale ticker list — it still tagged NFLX and never tagged XLE/RKLB/SPCX, out of sync with `clean_news.py`. Fixed 2026-07-04 by centralizing both into `databricks/_tickers.py` (via `%run`). Confirmed working via manual job runs the same day (`ingest_news`/`clean_news`/`sentiment` all `SUCCESS`). RKLB and SPCX now have dashboard cards. XLE and SPY still don't, as of 2026-07-05 — see below.
