@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { sendAlert } from "@/lib/alert"
-import { VALID_TICKERS, wakeWarehouse } from "@/lib/databricks"
-
-// Up to 3 min waiting for the warehouse plus the page warm-up.
-export const maxDuration = 300
+import { wakeWarehouse } from "@/lib/databricks"
 
 const HOST   = process.env.DATABRICKS_HOST!
 const TOKEN  = process.env.DATABRICKS_TOKEN!
@@ -54,24 +51,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // The warehouse has usually auto-stopped by 7:30; a cold start can outlast runQuery's
-  // 2-min poll and fail every warm-up render below, so start it first.
-  const warehouseState = await wakeWarehouse()
-  console.log(`[refresh/complete] Warehouse state before warm-up: ${warehouseState}`)
+  // The warehouse has usually auto-stopped by 7:30; start it so the first page rebuild
+  // doesn't wait on a cold start. Don't wait for RUNNING: cron-job.org times out at 30s,
+  // and revalidateTag only takes effect once this handler returns.
+  await wakeWarehouse(0)
 
   revalidateTag("sentiment", "default")
   console.log("[refresh/complete] ISR cache invalidated")
-
-  // revalidateTag only marks pages stale: the next visit to each page still gets the
-  // old copy and starts the rebuild. Visit every page now so real visitors see fresh data.
-  // The first pass is itself served stale, so visit again once the rebuilds have had time
-  // to land (on 2026-10-04 some pages still served old data a minute later).
-  const origin = req.nextUrl.origin
-  const paths = ["/", ...[...VALID_TICKERS].map((t) => `/ticker/${t}`)]
-  const warm = () => Promise.allSettled(paths.map((p) => fetch(`${origin}${p}`, { cache: "no-store" })))
-  await warm()
-  await new Promise((r) => setTimeout(r, 30_000))
-  await warm()
   return NextResponse.json({ ok: true, run_id: run_id ?? null })
 }
 

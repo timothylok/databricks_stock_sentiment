@@ -123,3 +123,11 @@
 - Finding: the post-bust warm-up doesn't make pages fresh on the first real visit. The home page needed a second visit, and several ticker pages (AMD, META, TSLA, RKLB, ...) needed 2–3 visits before they matched `sentiment_daily`. The warm-up fetch is served stale and only starts a background rebuild. All pages matched the DB by 13:20 NZT.
 - The Databricks query-profile hints the user pasted (unfiltered partition key on `sentiment_scores`/`news_clean`, small files) are performance advisories, not errors. The full scans are intentional and the tables are tiny. No action taken.
 - Next: tomorrow's 7:00/7:30 run, the first scheduled one since this block. Decide whether the warm-up should fetch each page twice. Option B on the GHA/Cloudflare migration now has a second outage behind it.
+
+## 2026-10-05
+- Handoff check: the 7:00 NZT run fired on its own (run `933142644540379`, 18:01 UTC, SUCCESS; `ticker_summary` updated 18:05 UTC). The Databricks block is gone.
+- But the site still showed 4 Oct 1:10pm NZT at 10:09 NZT: the 7:30 cache bust had no effect, and no Vercel logs survived to show why. A manual `/api/refresh/complete` (200, 32s) fixed it. Home and all spot-checked ticker pages matched `sentiment_daily` on the first visit.
+- Finding: in a route handler, `revalidateTag` only takes effect after the handler returns (`next/dist/server/route-modules/app-route/module.js`, `executeRevalidates` → `pendingWaitUntil`). So both warm-up passes in `/complete` render against the old cache. They can't help, and `04f9004` made the route take ~32s.
+- Confirmed cause: cron-job.org Job 2 fired at 7:30 but reported "did not fully respond within the configured timeout". The ~32s call was cut off before the handler returned, so the tag was never invalidated, and nothing alerts on that path.
+- Fix (local, not yet pushed): `/complete` no longer warms pages or sleeps. It sends the warehouse start request without waiting for RUNNING (`wakeWarehouse(0)`), then calls `revalidateTag`. Dropped `maxDuration = 300`.
+- Next: push, then confirm tomorrow's 7:30 bust succeeds in cron-job.org and the site shows 6 Oct data.
