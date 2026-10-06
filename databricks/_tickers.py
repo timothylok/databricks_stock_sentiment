@@ -24,6 +24,9 @@ COMPANY_MAP = {
     "tesla": "TSLA",
     "meta platforms": "META",
     "facebook": "META",
+    "meta": "META",
+    "spacex": "SPCX",
+    "space exploration technologies": "SPCX",
     "nvidia": "NVDA",
     "rocket lab": "RKLB",
     "cloudflare": "NET",
@@ -37,6 +40,10 @@ COMPANY_MAP = {
     # Index names: ETF tickers rarely appear literally in headlines
     "s&p 500": "SPY",
     "nasdaq 100": "QQQ",
+    "energy stocks": "XLE",
+    "energy sector": "XLE",
+    "energy etf": "XLE",
+    "energy etfs": "XLE",
 }
 COMPANY_PATTERN = re.compile(
     r"\b(" + "|".join(re.escape(k) for k in COMPANY_MAP) + r")\b"

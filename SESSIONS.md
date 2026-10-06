@@ -141,3 +141,5 @@
 - Real issue: SPY had data on only 4 of 30 days. Tagging only matches the literal symbol in the title (or `COMPANY_MAP` names), and ETFs have no name match. The `yahoo_spy` feed returns ~20 articles/day, mostly general-market stories, and only 1 of 20 said "SPY".
 - Fix (`081b73a`, pushed): `_tickers.py` maps "s&p 500" → SPY and "nasdaq 100" → QQQ. Applies to new articles only; no backfill. XLE has the same gap and wasn't changed.
 - Next: after the 7 Oct 18:00 UTC run, check SPY/QQQ article counts rose. Consider an XLE name match ("energy select sector") if it matters.
+- Tagging scan of all 18 `yahoo_<t>` feeds: found SPCX (SpaceX unmapped, 2/16 tagged) and META (bare "Meta" unmapped) as real gaps; other tickers' untagged titles are general-market noise. Added "spacex", "space exploration technologies", "meta", plus XLE names ("energy stocks/sector/etf/etfs"). After: SPCX 10/16, META 6/15, XLE 11/19 self-tagged. New articles only, no backfill.
+- Next: after the 7 Oct 18:00 UTC run, check SPY/QQQ/XLE/SPCX/META counts rose. Watch for false tags from bare "meta" and "energy stocks" (clean-energy headlines tag XLE).
