@@ -34,6 +34,9 @@ COMPANY_MAP = {
     # Also tags "JPMorgan upgrades X" analyst-note headlines; accepted for coverage
     "jpmorgan": "JPM",
     "jp morgan": "JPM",
+    # Index names: ETF tickers rarely appear literally in headlines
+    "s&p 500": "SPY",
+    "nasdaq 100": "QQQ",
 }
 COMPANY_PATTERN = re.compile(
     r"\b(" + "|".join(re.escape(k) for k in COMPANY_MAP) + r")\b"
