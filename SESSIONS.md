@@ -135,3 +135,9 @@
 - Local FinBERT (scratch venv, torch 2.14.0 CPU + transformers 5.17.0) reproduced the stored score (+0.064). It scored the MSN headline at −0.948. Averaging the 36 body sentences gives −0.031, because the market-context sentences cancel out the risk sentences. My reading of the article: negative, about −0.35. Takeaway: a headline-only score depends on which outlet's wording we receive. No code changed.
 - Full article text without a browser: `https://assets.msn.com/content/view/v2/Detail/en-us/<AA id>` returns JSON with `body` HTML. msn.com pages are client-rendered, and thestreet.com returns 403 to WebFetch.
 - Next: decide whether headline-wording variance needs a fix (score the RSS description too, or accept it as noise). Leaning towards no change based on one article.
+
+## 2026-10-07
+- "Cron broken" check: cron-job.org Job 1 (7:01 NZT, 5.78s) and Job 2 (7:30 NZT, 2.13s) both succeeded, and the site showed 7 Oct 7:05am NZT. This confirms the `8674235` fix from 10-05. Nothing was broken in the pipeline.
+- Real issue: SPY had data on only 4 of 30 days. Tagging only matches the literal symbol in the title (or `COMPANY_MAP` names), and ETFs have no name match. The `yahoo_spy` feed returns ~20 articles/day, mostly general-market stories, and only 1 of 20 said "SPY".
+- Fix (`081b73a`, pushed): `_tickers.py` maps "s&p 500" → SPY and "nasdaq 100" → QQQ. Applies to new articles only; no backfill. XLE has the same gap and wasn't changed.
+- Next: after the 7 Oct 18:00 UTC run, check SPY/QQQ article counts rose. Consider an XLE name match ("energy select sector") if it matters.
