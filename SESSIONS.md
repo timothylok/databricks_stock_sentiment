@@ -145,3 +145,8 @@
 - Next: after the 7 Oct 18:00 UTC run, check SPY/QQQ/XLE/SPCX/META counts rose. Watch for false tags from bare "meta" and "energy stocks" (clean-energy headlines tag XLE).
 - Client cache: stale ticker data when clicking between pages in one session came from Next's 5-min client router cache (HTML itself is `max-age=0, must-revalidate`). `740ece5` sets `experimental.staleTimes` to `{ dynamic: 0, static: 30 }` in `nextjs/next.config.mjs` (30s is the minimum allowed for static). SPCX data was fine on the server (rows through 6 Oct).
 - Handoff for 8 Oct: (1) check cron-job.org Jobs 1/2 succeeded and the site shows 8 Oct data; (2) after the run, confirm SPY/QQQ/XLE/SPCX/META article counts rose vs 7 Oct; (3) confirm the `740ece5` deploy went live; (4) the "Notion DeMark Backfill" job showed an orange icon in cron-job.org — a different project, not looked at.
+
+## 2026-10-09
+- 7:00 NZT trigger got 502 (Databricks workspace block; warehouse rejected `select 1`). User opened the Databricks UI, block cleared; triggered `/api/refresh` (run 290438428609350, succeeded) and `/api/refresh/complete` by hand, site fresh at 10:22 NZT.
+- Cause found from `system.access.audit`: blocks land ~4.75 days after the last interactive browser login (09-29, 10-04, 10-08). Not a usage quota.
+- Next: log in to Databricks in a browser every ~3 days (next by 10-11), or decide on the GHA/Cloudflare migration. 8 Oct's cache bust never showed on the site; cause not confirmed.

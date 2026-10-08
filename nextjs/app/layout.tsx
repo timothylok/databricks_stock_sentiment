@@ -4,7 +4,7 @@ import { ThemeToggle } from "@/components/ThemeToggle"
 
 export const metadata: Metadata = {
   title: "Stock Sentiment",
-  description: "Daily stock sentiment dashboard powered by Databricks",
+  description: "Daily stock sentiment dashboard powered by Cloudflare D1",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

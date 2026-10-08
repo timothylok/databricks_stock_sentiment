@@ -1,4 +1,4 @@
-import type { Headline } from "@/lib/databricks"
+import type { Headline } from "@/lib/d1"
 
 export function HeadlineList({ headlines }: { headlines: Headline[] }) {
   if (headlines.length === 0) {
@@ -35,7 +35,7 @@ function scoreStyle(c: number): string {
 }
 
 function formatDate(ts: string): string {
-  // Databricks returns "YYYY-MM-DD HH:MM:SS" with no zone; it's UTC
+  // D1 returns "YYYY-MM-DD HH:MM:SS" with no zone; it's UTC
   const iso = ts.includes("T") ? ts : ts.replace(" ", "T")
   return new Date(iso.endsWith("Z") ? iso : iso + "Z").toLocaleDateString("en-NZ", {
     timeZone: "Pacific/Auckland",

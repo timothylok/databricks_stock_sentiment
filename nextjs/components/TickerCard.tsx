@@ -1,5 +1,5 @@
 import Link from "next/link"
-import type { TickerSummary } from "@/lib/databricks"
+import type { TickerSummary } from "@/lib/d1"
 import { TICKER_META, moodLabel } from "@/lib/tickerMeta"
 import { TickerLogo } from "@/components/TickerLogo"
 import { Sparkline } from "@/components/Sparkline"

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import type { TickerSummary } from "@/lib/databricks"
+import type { TickerSummary } from "@/lib/d1"
 import { bucketOf, type Bucket } from "@/lib/tickerMeta"
 import { TickerCard } from "@/components/TickerCard"
 

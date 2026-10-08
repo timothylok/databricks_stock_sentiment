@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { getTickerSummaries, getRecentTrends, type TickerSummary } from "@/lib/databricks"
+import { getTickerSummaries, getRecentTrends, type TickerSummary } from "@/lib/d1"
 import { TickerGrid } from "@/components/TickerGrid"
 import { TickerLogo } from "@/components/TickerLogo"
 import { bucketOf, moodLabel } from "@/lib/tickerMeta"
@@ -20,7 +20,7 @@ export default async function HomePage() {
   } catch (err) {
     // Rethrow so ISR keeps serving the last good page instead of caching an empty one
     console.error("[home] getTickerSummaries failed:", err)
-    await sendAlert(`🚨 **dashboard**: Databricks query failed — keeping the previous page\n${err}`)
+    await sendAlert(`🚨 **dashboard**: D1 query failed — keeping the previous page\n${err}`)
     throw err
   }
 
@@ -108,7 +108,7 @@ export default async function HomePage() {
   )
 }
 
-// Databricks CAST(timestamp AS STRING) yields UTC, usually without a zone suffix.
+// D1 timestamps are UTC strings, usually without a zone suffix.
 function formatNzt(ts: string) {
   const iso = ts.includes("T") ? ts : ts.replace(" ", "T")
   const date = new Date(iso.endsWith("Z") ? iso : iso + "Z")

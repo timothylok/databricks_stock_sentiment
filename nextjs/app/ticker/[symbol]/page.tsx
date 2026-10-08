@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { getTickerSummaries, getTickerTrend, getRecentHeadlines, VALID_TICKERS } from "@/lib/databricks"
+import { getTickerSummaries, getTickerTrend, getRecentHeadlines, VALID_TICKERS } from "@/lib/d1"
 import { SentimentChart } from "@/components/SentimentChart"
 import { HeadlineList } from "@/components/HeadlineList"
 import { TickerLogo } from "@/components/TickerLogo"

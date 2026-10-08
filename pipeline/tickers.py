@@ -1,15 +1,6 @@
-# Databricks notebook source
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC Single source of truth for tracked tickers. Included via `%run ./_tickers`
-# MAGIC from `ingest_news.py` and `clean_news.py` so both stay in sync.
-
-# COMMAND ----------
+"""Single source of truth for tracked tickers and name matching."""
 
 import re
-
-# COMMAND ----------
 
 TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "AMD", "SPY", "XLE", "RKLB", "SPCX", "NET", "TSM", "AVGO", "ASTS", "QQQ", "JPM"]
 TICKER_PATTERN = re.compile(r"\b(" + "|".join(TICKERS) + r")\b")

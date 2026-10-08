@@ -4,7 +4,7 @@ import {
   LineChart, Line, XAxis, YAxis,
   Tooltip, ReferenceLine, ResponsiveContainer,
 } from "recharts"
-import type { DailyPoint } from "@/lib/databricks"
+import type { DailyPoint } from "@/lib/d1"
 
 export function SentimentChart({ data }: { data: DailyPoint[] }) {
   if (data.length === 0) {

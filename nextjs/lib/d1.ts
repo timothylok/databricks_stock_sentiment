@@ -1,11 +1,8 @@
 import { unstable_cache } from "next/cache"
 
-const HOST         = process.env.DATABRICKS_HOST!
-const TOKEN        = process.env.DATABRICKS_TOKEN!
-// warehouse_id lives in the last segment of the HTTP path: /sql/1.0/warehouses/<id>
-const WAREHOUSE_ID =
-  process.env.DATABRICKS_WAREHOUSE_ID ??
-  process.env.DATABRICKS_SQL_HTTP_PATH?.split("/").at(-1)
+const ACCOUNT_ID  = process.env.CLOUDFLARE_ACCOUNT_ID
+const DATABASE_ID = process.env.CLOUDFLARE_D1_DATABASE_ID
+const API_TOKEN   = process.env.CLOUDFLARE_API_TOKEN
 
 export const VALID_TICKERS = new Set([
   "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA",
@@ -47,83 +44,32 @@ export interface Headline {
 
 // ─── Core client ──────────────────────────────────────────────────────────────
 
-interface StmtResponse {
-  statement_id: string
-  status:    { state: string; error?: { message: string } }
-  manifest?: { schema: { columns: Array<{ name: string }> } }
-  result?:   { schema: { columns: Array<{ name: string }> }; data_array?: string[][] }
+interface D1Response {
+  success: boolean
+  errors:  Array<{ message: string }>
+  result:  Array<{ results: unknown[] }>
 }
 
 async function runQuery<T>(sql: string): Promise<T[]> {
-  const res = await fetch(`${HOST}/api/2.0/sql/statements`, {
-    method: "POST",
-    headers: {
-      Authorization:  `Bearer ${TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      warehouse_id: WAREHOUSE_ID,
-      statement:    sql,
-      wait_timeout: "30s",
-      disposition:  "INLINE",
-      format:       "JSON_ARRAY",
-    }),
-  })
-
-  if (!res.ok) throw new Error(`Databricks: HTTP ${res.status}`)
-
-  let data: StmtResponse = await res.json()
-
-  // A cold warehouse can take longer than wait_timeout; the statement then comes
-  // back PENDING/RUNNING with no rows, so poll it instead of reading it as empty.
-  const deadline = Date.now() + 120_000
-  while (data.status.state === "PENDING" || data.status.state === "RUNNING") {
-    if (Date.now() > deadline) throw new Error(`Databricks: query still ${data.status.state} after 2 min`)
-    await new Promise((r) => setTimeout(r, 3000))
-    const poll = await fetch(`${HOST}/api/2.0/sql/statements/${data.statement_id}`, {
-      headers: { Authorization: `Bearer ${TOKEN}` },
-    })
-    if (!poll.ok) throw new Error(`Databricks: HTTP ${poll.status}`)
-    data = await poll.json()
-  }
-
-  if (data.status.state !== "SUCCEEDED") {
-    throw new Error(data.status.error?.message ?? `Query ${data.status.state}`)
-  }
-
-  const columns = (data.manifest ?? data.result)?.schema.columns ?? []
-  const rows    = data.result?.data_array ?? []
-
-  return rows.map(
-    (row) =>
-      Object.fromEntries(
-        columns.map((col, i) => [col.name, coerce(row[i])])
-      ) as T
+  const res = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/d1/database/${DATABASE_ID}/query`,
+    {
+      method: "POST",
+      headers: {
+        Authorization:  `Bearer ${API_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sql }),
+      cache: "no-store",
+    }
   )
-}
 
-// Start the warehouse and wait until it's RUNNING, so page rebuilds that follow
-// don't hit a cold start longer than runQuery's 2-min poll. Returns the last state seen.
-export async function wakeWarehouse(timeoutMs = 180_000): Promise<string> {
-  const url = `${HOST}/api/2.0/sql/warehouses/${WAREHOUSE_ID}`
-  const headers = { Authorization: `Bearer ${TOKEN}` }
-  await fetch(`${url}/start`, { method: "POST", headers })
-  const deadline = Date.now() + timeoutMs
-  let state = "UNKNOWN"
-  while (Date.now() < deadline) {
-    const res = await fetch(url, { headers, cache: "no-store" })
-    if (res.ok) state = (await res.json()).state
-    if (state === "RUNNING") break
-    await new Promise((r) => setTimeout(r, 5000))
-  }
-  return state
-}
+  if (!res.ok) throw new Error(`D1: HTTP ${res.status}`)
 
-// Databricks returns all values as strings; cast numerics back to numbers.
-function coerce(v: string | null): string | number | null {
-  if (v === null || v === "") return null
-  const n = Number(v)
-  return Number.isNaN(n) ? v : n
+  const data: D1Response = await res.json()
+  if (!data.success) throw new Error(data.errors[0]?.message ?? "D1 query failed")
+
+  return data.result[0].results as T[]
 }
 
 function assertTicker(ticker: string): void {
@@ -132,7 +78,7 @@ function assertTicker(ticker: string): void {
 
 // ─── Cached query functions ────────────────────────────────────────────────────
 // unstable_cache wraps the async fn with Next.js server-side caching so ISR
-// works correctly even though Databricks queries use POST (not cacheable by fetch).
+// works correctly even though D1 queries use POST (not cacheable by fetch).
 
 export const getTickerSummaries = unstable_cache(
   async (): Promise<TickerSummary[]> =>
@@ -145,8 +91,8 @@ export const getTickerSummaries = unstable_cache(
         article_count_today,
         top_positive_title,
         top_negative_title,
-        CAST(last_updated AS STRING) AS last_updated
-      FROM stock_sentiment.ticker_summary
+        last_updated
+      FROM ticker_summary
       ORDER BY ticker
     `),
   ["ticker-summaries"],
@@ -160,15 +106,15 @@ export const getTickerTrend = (ticker: string, days = 30): Promise<DailyPoint[]>
     () =>
       runQuery<DailyPoint>(`
         SELECT
-          CAST(date AS STRING) AS date,
+          date,
           avg_compound,
           article_count,
           positive_count,
           negative_count,
           neutral_count
-        FROM stock_sentiment.sentiment_daily
+        FROM sentiment_daily
         WHERE ticker = '${ticker}'
-          AND date >= date_sub(current_date(), ${safeDays})
+          AND date >= date('now', '-${safeDays} day')
         ORDER BY date ASC
       `),
     [`ticker-trend-${ticker}-${safeDays}d`],
@@ -186,9 +132,9 @@ export const getRecentHeadlines = (ticker: string, limit = 20): Promise<Headline
           article_id,
           source,
           title,
-          CAST(published_at AS STRING) AS published_at,
+          published_at,
           compound
-        FROM stock_sentiment.sentiment_scores
+        FROM sentiment_scores
         WHERE ticker = '${ticker}'
         ORDER BY published_at DESC
         LIMIT ${safeLimit}
@@ -204,10 +150,10 @@ export const getRecentTrends = unstable_cache(
     runQuery(`
       SELECT
         ticker,
-        CAST(date AS STRING) AS date,
+        date,
         avg_compound
-      FROM stock_sentiment.sentiment_daily
-      WHERE date >= date_sub(current_date(), 7)
+      FROM sentiment_daily
+      WHERE date >= date('now', '-7 day')
       ORDER BY ticker, date
     `),
   ["recent-trends"],
