@@ -9,8 +9,10 @@ export const revalidate = 86400
 
 export default async function HomePage() {
   // Sparklines are optional: a failed trend query just hides them
-  const trendRows = getRecentTrends().catch((err) => {
+  const trendRows = getRecentTrends().catch(async (err) => {
     console.error("[home] getRecentTrends failed:", err)
+    await sendAlert(`⚠️ **dashboard**: sparkline query failed, sparklines hidden
+${err}`)
     return []
   })
 

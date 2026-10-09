@@ -6,6 +6,7 @@ import { HeadlineList } from "@/components/HeadlineList"
 import { TickerLogo } from "@/components/TickerLogo"
 import { SentimentBar } from "@/components/SentimentBar"
 import { TICKER_META } from "@/lib/tickerMeta"
+import { sendAlert } from "@/lib/alert"
 
 export const revalidate = 86400
 
@@ -28,11 +29,19 @@ export default async function TickerPage({
   if (!VALID_TICKERS.has(symbol)) notFound()
 
   // Query errors propagate so ISR keeps the last good page instead of caching a 404
-  const [summaries, trend, headlines] = await Promise.all([
-    getTickerSummaries(),
-    getTickerTrend(symbol, 30),
-    getRecentHeadlines(symbol, 20),
-  ])
+  let summaries, trend, headlines
+  try {
+    ;[summaries, trend, headlines] = await Promise.all([
+      getTickerSummaries(),
+      getTickerTrend(symbol, 30),
+      getRecentHeadlines(symbol, 20),
+    ])
+  } catch (err) {
+    console.error(`[ticker ${symbol}] query failed:`, err)
+    await sendAlert(`🚨 **ticker/${symbol}**: D1 query failed — keeping the previous page
+${err}`)
+    throw err
+  }
 
   const summary = summaries.find((s) => s.ticker === symbol)
   if (!summary) notFound()
