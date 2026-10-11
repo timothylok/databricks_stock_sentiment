@@ -2,6 +2,7 @@
 import calendar
 import hashlib
 import html
+import os
 import re
 import sys
 from datetime import datetime, timezone
@@ -21,15 +22,16 @@ POS_THRESHOLD = 0.2
 NEG_THRESHOLD = -0.2
 
 RSS_SOURCES = [
-    ("yahoo_finance",   "https://finance.yahoo.com/rss/topstories"),
     ("marketwatch",     "https://feeds.content.dowjones.io/public/rss/mw_topstories"),
-    ("reuters",         "https://feeds.reuters.com/reuters/businessNews"),
     ("cnbc_markets",    "https://www.cnbc.com/id/100003114/device/rss/rss.html"),
     ("cnbc_tech",       "https://www.cnbc.com/id/19854910/device/rss/rss.html"),
     ("apple_newsroom",  "https://www.apple.com/newsroom/rss-feed.rss"),
     ("motley_fool",     "https://www.fool.com/a/feeds/partner/googlechromefollow?apikey=5e092c1f-c5f9-4428-9219-908a47d2e2de"),
     ("forbes_markets",  "https://feeds.forbes.com/markets/feed2/"),
     ("forbes_investing", "https://feeds.forbes.com/investing/feed2/"),
+    ("cnbc_investing",  "https://www.cnbc.com/id/15839069/device/rss/rss.html"),
+    ("nyt_business",    "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml"),
+    ("bbc_business",    "https://feeds.bbci.co.uk/news/business/rss.xml"),
 ] + [
     (f"yahoo_{t.lower()}", f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={t}&region=US&lang=en-US")
     for t in TICKERS
@@ -111,16 +113,29 @@ def finbert_score(titles: list[str]) -> list[dict]:
 def main() -> None:
     print("Fetching sources...")
     fetched: list[dict] = []
+    empty: list[str] = []
+    per_ticker = {f"yahoo_{t.lower()}" for t in TICKERS}  # quiet tickers can legitimately return 0
     for name, url in RSS_SOURCES:
         try:
-            fetched.extend(fetch_rss(name, url))
+            rows = fetch_rss(name, url)
         except Exception as e:
             print(f"  WARNING: {name} failed — {e}")
+            rows = []
+        fetched.extend(rows)
+        if not rows and name not in per_ticker:
+            empty.append(name)
     try:
-        fetched.extend(fetch_finviz())
+        rows = fetch_finviz()
     except Exception as e:
         print(f"  WARNING: finviz failed — {e}")
+        rows = []
+    fetched.extend(rows)
+    if not rows:
+        empty.append("finviz")
     print(f"Total fetched: {len(fetched)}")
+    webhook = os.environ.get("DISCORD_WEBHOOK_URL")
+    if empty and webhook:
+        requests.post(webhook, json={"content": f"daily-refresh: 0 articles from {', '.join(empty)}"}, timeout=15)
     if not fetched:
         sys.exit("No articles fetched from any source")
 

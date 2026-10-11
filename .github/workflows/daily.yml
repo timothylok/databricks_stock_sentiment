@@ -26,6 +26,8 @@ jobs:
       - run: pip install -r pipeline/requirements.txt
       - run: python run.py
         working-directory: pipeline
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       # Pages are rebuilt from D1 on the next visit after this call
       - name: Invalidate dashboard cache
         run: |
