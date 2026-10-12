@@ -5,7 +5,8 @@ import html
 import os
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from difflib import SequenceMatcher
 
 import feedparser
 import requests
@@ -95,6 +96,36 @@ def normalize(title: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9\s]", " ", title.lower())).strip()
 
 
+STOPWORDS = set("a an the and or of to in on for is are was be as at by with from that this it its vs how why what who which will can could may says say new".split())
+FUZZY_WINDOW_DAYS = 2
+# Rewordings of one story (e.g. "Intel and Broadcom CEOs warn capital may bottleneck AI growth"
+# vs "Intel, Broadcom CEOs warn capital crunch could become AI's biggest bottleneck") share
+# most content words; same-template headlines about other companies are kept apart by
+# requiring identical tickers and identical numbers.
+FUZZY_JACCARD = 0.5
+FUZZY_RATIO = 0.65
+
+
+def fuzzy_key(norm: str, tickers) -> tuple:
+    words = norm.split()
+    return (
+        frozenset(tickers),
+        frozenset(w for w in words if w not in STOPWORDS),
+        frozenset(w for w in words if w.isdigit()),
+        norm,
+    )
+
+
+def is_near_duplicate(key: tuple, recent: list[tuple]) -> bool:
+    tickers, words, nums, norm = key
+    for t, w, n, other in recent:
+        if t != tickers or n != nums:
+            continue
+        if len(words & w) / len(words | w) >= FUZZY_JACCARD and SequenceMatcher(None, norm, other).ratio() >= FUZZY_RATIO:
+            return True
+    return False
+
+
 def find_tickers(title: str) -> list[str]:
     found = set(TICKER_PATTERN.findall(title))
     for match in COMPANY_PATTERN.findall(title.lower()):
@@ -145,6 +176,12 @@ def main() -> None:
     seen_ids = {r["article_id"] for r in known}
     seen_titles = {r["title_normalized"] for r in known}
 
+    cutoff = fmt(utcnow() - timedelta(days=FUZZY_WINDOW_DAYS))
+    recent_rows = d1.query(
+        "SELECT title_normalized, group_concat(ticker) AS tickers FROM sentiment_scores"
+        " WHERE published_at >= ? GROUP BY title_normalized", [cutoff])
+    recent = [fuzzy_key(r["title_normalized"], r["tickers"].split(",")) for r in recent_rows]
+
     articles = []
     for row in fetched:
         title = clean_title(row["title"])
@@ -152,6 +189,10 @@ def main() -> None:
         tickers = find_tickers(title)
         if len(title) < 10 or not tickers or row["id"] in seen_ids or norm in seen_titles:
             continue
+        key = fuzzy_key(norm, tickers)
+        if is_near_duplicate(key, recent):
+            continue
+        recent.append(key)
         seen_ids.add(row["id"])
         seen_titles.add(norm)
         articles.append({**row, "title": title, "title_normalized": norm, "tickers": tickers})
