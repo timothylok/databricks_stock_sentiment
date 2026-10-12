@@ -2,7 +2,7 @@
 
 import re
 
-TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "AMD", "SPY", "XLE", "RKLB", "SPCX", "NET", "TSM", "AVGO", "ASTS", "QQQ", "JPM"]
+TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "AMD", "SPY", "XLE", "RKLB", "SPCX", "NET", "TSM", "AVGO", "ASTS", "QQQ", "JPM", "ORCL", "CRWV", "MU", "MRVL", "INTC", "SMCI"]
 TICKER_PATTERN = re.compile(r"\b(" + "|".join(TICKERS) + r")\b")
 
 # Company name → ticker for enrichment beyond raw symbol matching
@@ -24,6 +24,13 @@ COMPANY_MAP = {
     "tsmc": "TSM",
     "taiwan semiconductor": "TSM",
     "broadcom": "AVGO",
+    "oracle": "ORCL",
+    "coreweave": "CRWV",
+    "micron": "MU",
+    "marvell": "MRVL",
+    "intel": "INTC",
+    "super micro": "SMCI",
+    "supermicro": "SMCI",
     "ast spacemobile": "ASTS",
     # Also tags "JPMorgan upgrades X" analyst-note headlines; accepted for coverage
     "jpmorgan": "JPM",

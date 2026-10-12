@@ -26,6 +26,12 @@ export const TICKER_META: Record<string, TickerMeta> = {
   ASTS:  { name: "AST SpaceMobile",             color: "#0B1F3A", mark: "AST" },
   QQQ:   { name: "Invesco QQQ (Nasdaq-100)",    color: "#1E3A8A", mark: "QQQ" },
   JPM:   { name: "JPMorgan Chase",              color: "#117ACA", logo: true },
+  ORCL:  { name: "Oracle",                     color: "#C74634", mark: "ORCL" },
+  CRWV:  { name: "CoreWeave",                  color: "#4B2E83", mark: "CRWV" },
+  MU:    { name: "Micron",                     color: "#0072CE", mark: "MU" },
+  MRVL:  { name: "Marvell",                    color: "#B5121B", mark: "MRVL" },
+  INTC:  { name: "Intel",                      color: "#0068B5", mark: "INTC" },
+  SMCI:  { name: "Super Micro Computer",       color: "#5B6770", mark: "SMCI" },
 }
 
 export type Bucket = "positive" | "neutral" | "negative"

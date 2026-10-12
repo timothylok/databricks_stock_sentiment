@@ -9,7 +9,8 @@ export const VALID_TICKERS = new Set([
   "META", "NVDA", "AMD",  "SPY",
   "XLE",  "RKLB", "SPCX",
   "NET",  "TSM",  "AVGO",
-  "ASTS", "QQQ",  "JPM",
+  "ASTS", "QQQ",  "JPM",  "ORCL",
+  "CRWV", "MU",   "MRVL", "INTC", "SMCI",
 ])
 
 // ─── Types ────────────────────────────────────────────────────────────────────
