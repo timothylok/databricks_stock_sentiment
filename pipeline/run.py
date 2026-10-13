@@ -13,7 +13,8 @@ import requests
 from bs4 import BeautifulSoup
 
 import d1
-from tickers import COMPANY_MAP, COMPANY_PATTERN, TICKER_PATTERN, TICKERS
+import aspect
+from tickers import COMPANY_MAP, COMPANY_PATTERN, TICKER_NAMES, TICKER_PATTERN, TICKERS
 
 MODEL = "ProsusAI/finbert"
 RECOMPUTE_DAYS = 30
@@ -200,10 +201,26 @@ def main() -> None:
 
     if articles:
         probs = finbert_score([a["title"] for a in articles])
+        # Headlines naming several tickers get a separate score per ticker
+        multi = [(a, t) for a in articles if len(a["tickers"]) > 1 for t in a["tickers"]]
+        aspect_scores = {}
+        if multi:
+            scored = aspect.aspect_score([(a["title"], TICKER_NAMES[t]) for a, t in multi])
+            aspect_scores = {(a["id"], t): s for (a, t), s in zip(multi, scored)}
+            print(f"Aspect-scored {len(multi)} ticker rows from {len({a['id'] for a, _ in multi})} headlines")
         now = fmt(utcnow())
         stmts = []
         for a, p in zip(articles, probs):
             for ticker in a["tickers"]:
+                s = aspect_scores.get((a["id"], ticker))
+                if s:
+                    stmts.append((
+                        "INSERT OR REPLACE INTO sentiment_scores (article_id, ticker, source, title, title_normalized,"
+                        " published_at, compound, pos, neu, neg, scored_at, model) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                        [a["id"], ticker, a["source"], a["title"], a["title_normalized"], fmt(a["published_at"]),
+                         s["compound"], s["pos"], s["neu"], s["neg"], now, aspect.MODEL],
+                    ))
+                    continue
                 stmts.append((
                     "INSERT OR REPLACE INTO sentiment_scores (article_id, ticker, source, title, title_normalized,"
                     " published_at, compound, pos, neu, neg, scored_at, model) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",

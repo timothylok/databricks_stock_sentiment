@@ -5,6 +5,15 @@ import re
 TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "AMD", "SPY", "XLE", "RKLB", "SPCX", "NET", "TSM", "AVGO", "ASTS", "QQQ", "JPM", "ORCL", "CRWV", "MU", "MRVL", "INTC", "SMCI"]
 TICKER_PATTERN = re.compile(r"\b(" + "|".join(TICKERS) + r")\b")
 
+# Names used to ask "is this good/bad news for <name>" in aspect scoring
+TICKER_NAMES = {
+    "AAPL": "Apple", "MSFT": "Microsoft", "GOOGL": "Alphabet", "AMZN": "Amazon", "TSLA": "Tesla",
+    "META": "Meta Platforms", "NVDA": "Nvidia", "AMD": "AMD", "SPY": "the S&P 500", "XLE": "energy stocks",
+    "RKLB": "Rocket Lab", "SPCX": "SpaceX", "NET": "Cloudflare", "TSM": "TSMC", "AVGO": "Broadcom",
+    "ASTS": "AST SpaceMobile", "QQQ": "the Nasdaq 100", "JPM": "JPMorgan", "ORCL": "Oracle",
+    "CRWV": "CoreWeave", "MU": "Micron", "MRVL": "Marvell", "INTC": "Intel", "SMCI": "Super Micro Computer",
+}
+
 # Company name → ticker for enrichment beyond raw symbol matching
 COMPANY_MAP = {
     "apple": "AAPL",
