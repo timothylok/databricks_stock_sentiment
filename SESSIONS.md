@@ -177,3 +177,9 @@
 - Refreshed the Artifact dashboard (https://claude.ai/artifact/TmBNapeA4qPeQzRiMLvnGj) to all 24 tickers: exported `ticker_summary` (24 rows) and 30 days of `sentiment_daily` (290 rows) from D1, uploaded as assets, updated `datasets/summary` and `datasets/daily` `source.url` and `updated`. Page is data-driven, no edits. Gotcha: write the export with `encoding='utf-8'` (Windows default cp1252 made the upload fail with "text assets must be UTF-8"). Old 9 Oct JSON blobs are still stored, unreferenced. Page not opened/checked visually.
 - AMD ticker page had no 14 Oct point: not a bug. `sentiment_daily` buckets by UTC date of `published_at`; the 7:00 NZDT run (13 Oct 18:01 UTC, succeeded, 3m43s) stores up to ~17:20 UTC, and 14 Oct UTC only starts at 13:00 NZDT. The 14 Oct point appears after the 15 Oct 7:00 NZDT run, so the chart always lags NZ readers by a day. Offered: bucket by NZ date (changes the aggregation in `run.py` and needs the 30-day history recomputed) or label the chart UTC. Not decided.
 - Next: decide the NZ-vs-UTC day bucketing; the 14 Oct handoff items above still stand.
+
+## 2026-10-15
+- Health pass: 15 Oct 7:00 NZDT (14 Oct 18:01 UTC) run succeeded in 3m37s; D1 newest row 14 Oct 18:02 UTC, no source at 0 articles (yahoo_smci thinnest at 5). `gh run view --log` returns 403 (needs admin); use job steps instead.
+- Pinned `daily.yml` to `ubuntu-24.04` (`d9852b4`) ahead of GitHub moving `ubuntu-latest` to Ubuntu 26 on 19 Oct. Test dispatch (run 38654410291) succeeded: torch, run.py, cache bust all passed.
+- `gh` auth was stale again (401); fixed with `gh auth login -h github.com -p https -w`.
+- Next: confirm the 16 Oct 7:00 NZDT run succeeded; earlier 14 Oct handoff items and the NZ-vs-UTC day bucketing decision still stand.
